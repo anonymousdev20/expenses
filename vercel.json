@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "name": "expense-tracker-pwa",
+  "builds": [
+    {
+      "src": "build/web/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/build/web/$1"
+    }
+  ],
+  "installCommand": "flutter pub get",
+  "buildCommand": "flutter build web",
+  "outputDirectory": "build/web",
+  "framework": null
+}

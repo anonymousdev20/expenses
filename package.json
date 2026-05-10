@@ -1,0 +1,12 @@
+{
+  "name": "expense-tracker-pwa",
+  "version": "1.0.0",
+  "description": "Flutter PWA Expense Tracker",
+  "scripts": {
+    "build": "flutter build web --web-renderer canvaskit --no-sound-null-safety",
+    "dev": "flutter run -d chrome --web-renderer canvaskit"
+  },
+  "devDependencies": {
+    "@vercel/node": "^3.0.0"
+  }
+}
