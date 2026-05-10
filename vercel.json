@@ -5,9 +5,21 @@
     {
       "src": "build/web/**",
       "use": "@vercel/static"
+    },
+    {
+      "src": "web/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
+    {
+      "src": "/",
+      "dest": "/web/landing.html"
+    },
+    {
+      "src": "/app",
+      "dest": "/build/web/index.html"
+    },
     {
       "src": "/(.*)",
       "dest": "/build/web/$1"
