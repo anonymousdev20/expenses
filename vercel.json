@@ -13,8 +13,8 @@
       "dest": "/build/web/$1"
     }
   ],
-  "installCommand": "flutter pub get",
-  "buildCommand": "flutter build web",
+  "installCommand": "chmod +x build.sh && ./build.sh",
+  "buildCommand": "echo 'Build completed in install step'",
   "outputDirectory": "build/web",
   "framework": null
 }

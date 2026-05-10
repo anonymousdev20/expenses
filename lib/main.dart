@@ -9,6 +9,7 @@ import 'providers/category_provider.dart';
 import 'providers/budget_provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/splash_screen.dart';
+import 'screens/animated_splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +36,7 @@ class ExpenseTrackerApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: ThemeMode.system,
-            home: const SplashScreen(),
+            home: const AnimatedSplashScreen(),
             routes: {
               '/dashboard': (context) => const DashboardScreen(),
             },

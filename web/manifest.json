@@ -1,11 +1,11 @@
 {
-    "name": "expense_tracker_pwa",
-    "short_name": "expense_tracker_pwa",
+    "name": "Expense Tracker PWA",
+    "short_name": "ExpenseTracker",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#ffffff",
+    "theme_color": "#6366f1",
+    "description": "A modern, production-quality Expense Tracker Progressive Web App with offline support and local-first data storage.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
