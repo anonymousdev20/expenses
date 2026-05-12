@@ -1,40 +1,31 @@
-# Stage 1: Build Flutter web app
-FROM flutter:3.19.0-stable AS build
+# Multi-stage build for Flutter PWA
+FROM cirrusci/flutter:3.19.0 AS builder
 
 WORKDIR /app
 
-# Copy dependency files first for caching
-COPY pubspec.yaml pubspec.lock* ./
-
-# Get Flutter dependencies
+# Copy dependency files
+COPY pubspec.yaml ./
 RUN flutter pub get
 
-# Copy the rest of the source code
+# Copy source code
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p assets/images assets/icons assets/animations
+RUN mkdir -p assets/images assets/icons assets/animations web
 
-# Build the Flutter web app
-RUN flutter build web --release --web-renderer canvaskit
+# Build Flutter web app
+RUN flutter build web --release --no-sound-null-safety
 
-# Stage 2: Serve with Python
-FROM python:3.12-slim
+# Production stage - use nginx to serve static files
+FROM nginx:alpine
 
-WORKDIR /app
+# Copy built Flutter app
+COPY --from=builder /app/build/web /usr/share/nginx/html
 
-# Copy the built Flutter web output
-COPY --from=build /app/build/web ./build/web
+# Copy nginx configuration
+RUN echo 'server { listen 80; location / { try_files $uri $uri/ /index.html; } location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ { expires 1y; add_header Cache-Control "public, immutable"; } }' > /etc/nginx/conf.d/default.conf
 
-# Copy the landing page and web assets
-COPY web ./web
+# Expose port
+EXPOSE 80
 
-# Copy the server script
-COPY server.py .
-
-# Expose the port
-ARG PORT=8080
-ENV PORT=$PORT
-EXPOSE $PORT
-
-CMD ["python", "server.py"]
+CMD ["nginx", "-g", "daemon off;"]
