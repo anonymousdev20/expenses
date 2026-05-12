@@ -23,9 +23,9 @@ FROM nginx:alpine
 COPY --from=builder /app/build/web /usr/share/nginx/html
 
 # Copy nginx configuration
-RUN echo 'server { listen 80; location / { try_files $uri $uri/ /index.html; } location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ { expires 1y; add_header Cache-Control "public, immutable"; } }' > /etc/nginx/conf.d/default.conf
+RUN echo 'server { listen $PORT; location / { try_files $uri $uri/ /index.html; } location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ { expires 1y; add_header Cache-Control "public, immutable"; } }' > /etc/nginx/conf.d/default.conf.template
 
 # Expose port
-EXPOSE 80
+EXPOSE 8080
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["sh", "-c", "envsubst '$PORT' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
