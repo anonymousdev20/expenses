@@ -1,5 +1,5 @@
 # Multi-stage build for Flutter PWA
-FROM cirrusci/flutter:3.19.0 AS builder
+FROM ghcr.io/cirruslabs/flutter:stable AS builder
 
 WORKDIR /app
 
