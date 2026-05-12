@@ -1,10 +1,6 @@
 # Multi-stage build for Flutter PWA
 FROM ghcr.io/cirruslabs/flutter:stable AS builder
 
-# Create non-root user
-RUN groupadd --gid 1001 flutter && \
-    useradd --uid 1001 --gid 1001 --shell /bin/bash --create-home flutter
-
 WORKDIR /app
 
 # Copy dependency files
@@ -14,8 +10,10 @@ RUN flutter pub get
 # Copy source code
 COPY . .
 
-# Create necessary directories and set permissions
+# Create necessary directories and non-root user in one step
 RUN mkdir -p assets/images assets/icons assets/animations web && \
+    groupadd --gid 1001 flutter && \
+    useradd --uid 1001 --gid 1001 --shell /bin/bash --create-home flutter && \
     chown -R flutter: flutter /app
 
 # Switch to non-root user
