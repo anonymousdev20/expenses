@@ -5,4 +5,3 @@ restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
 [build]
-image = "ghcr.io/anonymousdev20/expenses:latest"
