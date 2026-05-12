@@ -1,0 +1,12 @@
+[build]
+builder = "static"
+
+[static]
+publicDir = "build/web"
+command = "flutter build web --release --web-renderer canvaskit"
+
+[deploy]
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
