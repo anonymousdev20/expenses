@@ -3,6 +3,8 @@ import '../constants/app_constants.dart';
 import '../constants/app_theme.dart';
 import 'dashboard_screen.dart';
 
+// Updated landing page - v2.0 - Chat app style
+
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
 
