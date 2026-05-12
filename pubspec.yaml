@@ -58,13 +58,8 @@ dependencies:
   intl: ^0.17.0
   uuid: ^4.4.2
   crypto: ^3.0.3
-  image_picker: ^1.1.2
-  file_picker: ^8.1.2
   
     
-  # Notifications
-  flutter_local_notifications: ^17.2.2
-  
   # Date & Time
   date_time_picker: ^2.1.0
 

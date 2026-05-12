@@ -1,5 +1,5 @@
 # Stage 1: Build Flutter web app
-FROM ghcr.io/cirruslabs/flutter:stable AS build
+FROM flutter:3.19.0-stable AS build
 
 WORKDIR /app
 
@@ -12,8 +12,11 @@ RUN flutter pub get
 # Copy the rest of the source code
 COPY . .
 
+# Create necessary directories
+RUN mkdir -p assets/images assets/icons assets/animations
+
 # Build the Flutter web app
-RUN flutter build web --release
+RUN flutter build web --release --web-renderer canvaskit
 
 # Stage 2: Serve with Python
 FROM python:3.12-slim

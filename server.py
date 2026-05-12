@@ -9,9 +9,13 @@ class ExpenseTrackerHandler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*args, directory=".", **kwargs)
     
     def do_GET(self):
-        # Handle root path - serve landing page
+        # Handle root path - serve Flutter app directly if no landing page
         if self.path == '/':
-            self.path = '/web/landing.html'
+            # Try to serve landing page first, fallback to Flutter app
+            if os.path.exists('web/landing.html'):
+                self.path = '/web/landing.html'
+            else:
+                self.path = '/build/web/index.html'
         
         # Handle app path - serve Flutter app
         elif self.path == '/app':
