@@ -2,8 +2,8 @@
 builder = "static"
 
 [static]
-publicDir = "build/web"
-command = "flutter build web --release"
+publicDir = "web"
+command = "echo 'Web app ready'"
 
 [deploy]
 healthcheckPath = "/"
