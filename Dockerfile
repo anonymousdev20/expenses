@@ -1,6 +1,10 @@
 # Multi-stage build for Flutter PWA
 FROM ghcr.io/cirruslabs/flutter:stable AS builder
 
+# Create non-root user
+RUN groupadd --gid 1001 flutter && \
+    useradd --uid 1001 --gid 1001 --shell /bin/bash --create-home flutter
+
 WORKDIR /app
 
 # Copy dependency files
@@ -10,11 +14,15 @@ RUN flutter pub get
 # Copy source code
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p assets/images assets/icons assets/animations web
+# Create necessary directories and set permissions
+RUN mkdir -p assets/images assets/icons assets/animations web && \
+    chown -R flutter: flutter /app
+
+# Switch to non-root user
+USER flutter
 
 # Build Flutter web app
-RUN flutter build web --release --no-sound-null-safety
+RUN flutter build web --release
 
 # Production stage - use nginx to serve static files
 FROM nginx:alpine
