@@ -7,14 +7,13 @@ class QuickAddButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FloatingActionButton.extended(
-      onPressed: () {
-        _showAddOptions(context);
-      },
-      icon: const Icon(Icons.add),
-      label: const Text('Add Expense'),
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+    return FloatingActionButton(
+      onPressed: () => _showAddOptions(context),
+      backgroundColor: AppTheme.accentYellow,
+      foregroundColor: const Color(0xFF1A237E),
+      elevation: 6,
+      shape: const CircleBorder(),
+      child: const Icon(Icons.add, size: 30),
     );
   }
 
@@ -22,116 +21,99 @@ class QuickAddButton extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 24),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(2),
+      isScrollControlled: true,
+      builder: (context) => _AddOptionsSheet(),
+    );
+  }
+}
+
+class _AddOptionsSheet extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.all(Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceVariant,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+
+          Text(
+            'Add your expense',
+            style: AppTheme.titleStyle.copyWith(
+              color: AppTheme.primaryBlue,
+              fontSize: 18,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          Row(
+            children: [
+              Expanded(
+                child: _AddOption(
+                  icon: Icons.arrow_upward_rounded,
+                  label: 'Expense',
+                  color: AppTheme.lightError,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const AddExpenseScreen(),
+                    ));
+                  },
+                ),
               ),
-            ),
-            
-            // Title
-            Text(
-              'Add Transaction',
-              style: AppTheme.titleStyle.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
+              const SizedBox(width: 16),
+              Expanded(
+                child: _AddOption(
+                  icon: Icons.arrow_downward_rounded,
+                  label: 'Income',
+                  color: AppTheme.success,
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const AddExpenseScreen(),
+                    ));
+                  },
+                ),
               ),
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Options
-            Row(
-              children: [
-                // Add Expense
-                Expanded(
-                  child: _AddOption(
-                    icon: Icons.arrow_upward,
-                    label: 'Expense',
-                    color: AppTheme.lightError,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const AddExpenseScreen(),
-                        ),
-                      );
-                    },
-                  ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _AddOption(
+                  icon: Icons.camera_alt_outlined,
+                  label: 'Scan Receipt',
+                  color: AppTheme.primaryBlue,
+                  onTap: () => Navigator.pop(context),
                 ),
-                
-                const SizedBox(width: 16),
-                
-                // Add Income
-                Expanded(
-                  child: _AddOption(
-                    icon: Icons.arrow_downward,
-                    label: 'Income',
-                    color: AppTheme.success,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const AddExpenseScreen(),
-                        ),
-                      );
-                    },
-                  ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _AddOption(
+                  icon: Icons.mic_outlined,
+                  label: 'Voice Input',
+                  color: AppTheme.warning,
+                  onTap: () => Navigator.pop(context),
                 ),
-              ],
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Quick Actions
-            Row(
-              children: [
-                // Scan Receipt
-                Expanded(
-                  child: _AddOption(
-                    icon: Icons.camera_alt,
-                    label: 'Scan Receipt',
-                    color: AppTheme.info,
-                    onTap: () {
-                      Navigator.pop(context);
-                      // TODO: Implement receipt scanning
-                    },
-                  ),
-                ),
-                
-                const SizedBox(width: 16),
-                
-                // Voice Input
-                Expanded(
-                  child: _AddOption(
-                    icon: Icons.mic,
-                    label: 'Voice Input',
-                    color: AppTheme.warning,
-                    onTap: () {
-                      Navigator.pop(context);
-                      // TODO: Implement voice input
-                    },
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 24),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -156,30 +138,30 @@ class _AddOption extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(vertical: 18),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withOpacity(0.08),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: color.withOpacity(0.2),
-            width: 1,
-          ),
+          border: Border.all(color: color.withOpacity(0.2)),
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: color,
-              size: 32,
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 26),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Text(
               label,
               style: AppTheme.subtitleStyle.copyWith(
                 color: color,
                 fontWeight: FontWeight.w600,
+                fontSize: 13,
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),

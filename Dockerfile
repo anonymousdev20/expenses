@@ -13,7 +13,7 @@ RUN flutter pub get
 COPY . .
 
 # Build the Flutter web app
-RUN flutter build web --release --web-renderer canvaskit
+RUN flutter build web --release
 
 # Stage 2: Serve with Python
 FROM python:3.12-slim

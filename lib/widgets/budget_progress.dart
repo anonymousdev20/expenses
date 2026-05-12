@@ -30,13 +30,13 @@ class BudgetProgress extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: AppTheme.primaryBlue.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -122,20 +122,14 @@ class BudgetProgress extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    NumberFormat.currency(
-                      symbol: AppConstants.defaultCurrency,
-                      decimalDigits: 2,
-                    ).format(budget.spent),
+                    '${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(budget.spent)}',
                     style: AppTheme.captionStyle.copyWith(
                       color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   Text(
-                    'of ${NumberFormat.currency(
-                      symbol: AppConstants.defaultCurrency,
-                      decimalDigits: 2,
-                    ).format(budget.amount)}',
+                    'of ${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(budget.amount)}',
                     style: AppTheme.captionStyle.copyWith(
                       color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                     ),
@@ -158,10 +152,7 @@ class BudgetProgress extends StatelessWidget {
                 ),
               ),
               Text(
-                NumberFormat.currency(
-                  symbol: AppConstants.defaultCurrency,
-                  decimalDigits: 2,
-                ).format(budget.remaining),
+                '${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(budget.remaining.abs())}',
                 style: AppTheme.captionStyle.copyWith(
                   color: budget.remaining >= 0 ? AppTheme.success : AppTheme.lightError,
                   fontWeight: FontWeight.w600,

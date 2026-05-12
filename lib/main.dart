@@ -10,10 +10,12 @@ import 'providers/budget_provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/splash_screen.dart';
 import 'screens/animated_splash_screen.dart';
+import 'services/database_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferences.getInstance();
+  await DatabaseService.instance.init(); // seed default categories on first run
   runApp(const ExpenseTrackerApp());
 }
 

@@ -1,351 +1,251 @@
-import 'dart:io';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:sqflite/sqflite.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense.dart';
 import '../models/category.dart';
 import '../models/budget.dart';
 
+/// Web-compatible storage service using shared_preferences (localStorage on web).
+/// Replaces the sqflite-based implementation which does not work on Flutter Web.
 class DatabaseService {
   static DatabaseService? _instance;
   static DatabaseService get instance => _instance ??= DatabaseService._();
-  
+
   DatabaseService._();
 
-  Database? _database;
+  static const String _expensesKey = 'expenses';
+  static const String _categoriesKey = 'categories';
+  static const String _budgetsKey = 'budgets';
 
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
+  SharedPreferences? _prefs;
+
+  Future<SharedPreferences> get _storage async {
+    _prefs ??= await SharedPreferences.getInstance();
+    return _prefs!;
   }
 
-  Future<Database> _initDatabase() async {
-    Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, 'expense_tracker.db');
-    
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-    );
-  }
+  // ─── Initialisation ────────────────────────────────────────────────────────
 
-  Future<void> _onCreate(Database db, int version) async {
-    // Create expenses table
-    await db.execute('''
-      CREATE TABLE expenses (
-        id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        amount REAL NOT NULL,
-        category TEXT NOT NULL,
-        date TEXT NOT NULL,
-        paymentMethod TEXT NOT NULL,
-        notes TEXT,
-        tags TEXT,
-        location TEXT,
-        receiptImagePath TEXT,
-        isRecurring INTEGER DEFAULT 0,
-        recurringPattern TEXT,
-        recurringEndDate TEXT,
-        isIncome INTEGER DEFAULT 0,
-        createdAt TEXT NOT NULL,
-        updatedAt TEXT NOT NULL
-      )
-    ''');
-
-    // Create categories table
-    await db.execute('''
-      CREATE TABLE categories (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        color TEXT NOT NULL,
-        icon TEXT NOT NULL,
-        description TEXT,
-        isDefault INTEGER DEFAULT 0,
-        budgetLimit REAL DEFAULT 0.0,
-        createdAt TEXT NOT NULL,
-        updatedAt TEXT NOT NULL
-      )
-    ''');
-
-    // Create budgets table
-    await db.execute('''
-      CREATE TABLE budgets (
-        id TEXT PRIMARY KEY,
-        categoryId TEXT NOT NULL,
-        amount REAL NOT NULL,
-        spent REAL DEFAULT 0.0,
-        period TEXT NOT NULL,
-        startDate TEXT NOT NULL,
-        endDate TEXT NOT NULL,
-        isActive INTEGER DEFAULT 1,
-        createdAt TEXT NOT NULL,
-        updatedAt TEXT NOT NULL,
-        FOREIGN KEY (categoryId) REFERENCES categories (id)
-      )
-    ''');
-
-    // Create indexes for better performance
-    await db.execute('CREATE INDEX idx_expenses_date ON expenses(date)');
-    await db.execute('CREATE INDEX idx_expenses_category ON expenses(category)');
-    await db.execute('CREATE INDEX idx_budgets_category ON budgets(categoryId)');
-    await db.execute('CREATE INDEX idx_budgets_active ON budgets(isActive)');
-
-    // Insert default categories
-    await _insertDefaultCategories(db);
-  }
-
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // Handle database upgrades here
-    if (oldVersion < 2) {
-      // Add new columns or tables for version 2
+  /// Call once at app start to seed default categories if none exist.
+  Future<void> init() async {
+    final categories = await getAllCategories();
+    if (categories.isEmpty) {
+      final defaults = [
+        ...DefaultCategories.getDefaultExpenseCategories(),
+        ...DefaultCategories.getDefaultIncomeCategories(),
+      ];
+      for (final cat in defaults) {
+        await insertCategory(cat);
+      }
     }
   }
 
-  Future<void> _insertDefaultCategories(Database db) async {
-    final defaultExpenseCategories = DefaultCategories.getDefaultExpenseCategories();
-    final defaultIncomeCategories = DefaultCategories.getDefaultIncomeCategories();
-    
-    for (final category in [...defaultExpenseCategories, ...defaultIncomeCategories]) {
-      await db.insert('categories', category.toMap());
-    }
+  // ─── Generic helpers ───────────────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> _readList(String key) async {
+    final prefs = await _storage;
+    final raw = prefs.getString(key);
+    if (raw == null) return [];
+    final decoded = jsonDecode(raw) as List<dynamic>;
+    return decoded.cast<Map<String, dynamic>>();
   }
 
-  // Expense operations
+  Future<void> _writeList(String key, List<Map<String, dynamic>> list) async {
+    final prefs = await _storage;
+    await prefs.setString(key, jsonEncode(list));
+  }
+
+  // ─── Expense operations ────────────────────────────────────────────────────
+
   Future<String> insertExpense(Expense expense) async {
-    final db = await database;
-    await db.insert('expenses', expense.toMap());
+    final list = await _readList(_expensesKey);
+    list.add(expense.toMap());
+    await _writeList(_expensesKey, list);
     return expense.id;
   }
 
   Future<List<Expense>> getAllExpenses() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'expenses',
-      orderBy: 'date DESC',
-    );
-    return List.generate(maps.length, (i) => Expense.fromMap(maps[i]));
+    final list = await _readList(_expensesKey);
+    final expenses = list.map((m) => Expense.fromMap(m)).toList();
+    expenses.sort((a, b) => b.date.compareTo(a.date));
+    return expenses;
   }
 
-  Future<List<Expense>> getExpensesByDateRange(DateTime start, DateTime end) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'expenses',
-      where: 'date >= ? AND date <= ?',
-      whereArgs: [start.toIso8601String(), end.toIso8601String()],
-      orderBy: 'date DESC',
-    );
-    return List.generate(maps.length, (i) => Expense.fromMap(maps[i]));
+  Future<List<Expense>> getExpensesByDateRange(
+      DateTime start, DateTime end) async {
+    final all = await getAllExpenses();
+    return all
+        .where((e) =>
+            !e.date.isBefore(start) && !e.date.isAfter(end))
+        .toList();
   }
 
   Future<List<Expense>> getExpensesByCategory(String category) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'expenses',
-      where: 'category = ?',
-      whereArgs: [category],
-      orderBy: 'date DESC',
-    );
-    return List.generate(maps.length, (i) => Expense.fromMap(maps[i]));
+    final all = await getAllExpenses();
+    return all.where((e) => e.category == category).toList();
   }
 
   Future<Expense?> getExpenseById(String id) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'expenses',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    if (maps.isNotEmpty) {
-      return Expense.fromMap(maps.first);
+    final all = await getAllExpenses();
+    try {
+      return all.firstWhere((e) => e.id == id);
+    } catch (_) {
+      return null;
     }
-    return null;
   }
 
   Future<int> updateExpense(Expense expense) async {
-    final db = await database;
-    return await db.update(
-      'expenses',
-      expense.toMap(),
-      where: 'id = ?',
-      whereArgs: [expense.id],
-    );
+    final list = await _readList(_expensesKey);
+    final idx = list.indexWhere((m) => m['id'] == expense.id);
+    if (idx == -1) return 0;
+    list[idx] = expense.toMap();
+    await _writeList(_expensesKey, list);
+    return 1;
   }
 
   Future<int> deleteExpense(String id) async {
-    final db = await database;
-    return await db.delete(
-      'expenses',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    final list = await _readList(_expensesKey);
+    final before = list.length;
+    list.removeWhere((m) => m['id'] == id);
+    await _writeList(_expensesKey, list);
+    return before - list.length;
   }
 
-  // Category operations
+  // ─── Category operations ───────────────────────────────────────────────────
+
   Future<String> insertCategory(Category category) async {
-    final db = await database;
-    await db.insert('categories', category.toMap());
+    final list = await _readList(_categoriesKey);
+    list.add(category.toMap());
+    await _writeList(_categoriesKey, list);
     return category.id;
   }
 
   Future<List<Category>> getAllCategories() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'categories',
-      orderBy: 'name ASC',
-    );
-    return List.generate(maps.length, (i) => Category.fromMap(maps[i]));
+    final list = await _readList(_categoriesKey);
+    final categories = list.map((m) => Category.fromMap(m)).toList();
+    categories.sort((a, b) => a.name.compareTo(b.name));
+    return categories;
   }
 
   Future<Category?> getCategoryById(String id) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'categories',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    if (maps.isNotEmpty) {
-      return Category.fromMap(maps.first);
+    final all = await getAllCategories();
+    try {
+      return all.firstWhere((c) => c.id == id);
+    } catch (_) {
+      return null;
     }
-    return null;
   }
 
   Future<int> updateCategory(Category category) async {
-    final db = await database;
-    return await db.update(
-      'categories',
-      category.toMap(),
-      where: 'id = ?',
-      whereArgs: [category.id],
-    );
+    final list = await _readList(_categoriesKey);
+    final idx = list.indexWhere((m) => m['id'] == category.id);
+    if (idx == -1) return 0;
+    list[idx] = category.toMap();
+    await _writeList(_categoriesKey, list);
+    return 1;
   }
 
   Future<int> deleteCategory(String id) async {
-    final db = await database;
-    return await db.delete(
-      'categories',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    final list = await _readList(_categoriesKey);
+    final before = list.length;
+    list.removeWhere((m) => m['id'] == id);
+    await _writeList(_categoriesKey, list);
+    return before - list.length;
   }
 
-  // Budget operations
+  // ─── Budget operations ─────────────────────────────────────────────────────
+
   Future<String> insertBudget(Budget budget) async {
-    final db = await database;
-    await db.insert('budgets', budget.toMap());
+    final list = await _readList(_budgetsKey);
+    list.add(budget.toMap());
+    await _writeList(_budgetsKey, list);
     return budget.id;
   }
 
   Future<List<Budget>> getAllBudgets() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'budgets',
-      where: 'isActive = ?',
-      whereArgs: [1],
-      orderBy: 'startDate DESC',
-    );
-    return List.generate(maps.length, (i) => Budget.fromMap(maps[i]));
+    final list = await _readList(_budgetsKey);
+    final budgets = list
+        .map((m) => Budget.fromMap(m))
+        .where((b) => b.isActive)
+        .toList();
+    budgets.sort((a, b) => b.startDate.compareTo(a.startDate));
+    return budgets;
   }
 
   Future<Budget?> getBudgetById(String id) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'budgets',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    if (maps.isNotEmpty) {
-      return Budget.fromMap(maps.first);
+    final list = await _readList(_budgetsKey);
+    try {
+      return Budget.fromMap(list.firstWhere((m) => m['id'] == id));
+    } catch (_) {
+      return null;
     }
-    return null;
   }
 
   Future<Budget?> getBudgetByCategory(String categoryId) async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      'budgets',
-      where: 'categoryId = ? AND isActive = ?',
-      whereArgs: [categoryId, 1],
-      orderBy: 'startDate DESC',
-      limit: 1,
-    );
-    if (maps.isNotEmpty) {
-      return Budget.fromMap(maps.first);
+    final all = await getAllBudgets();
+    try {
+      return all.firstWhere(
+          (b) => b.categoryId == categoryId && b.isActive);
+    } catch (_) {
+      return null;
     }
-    return null;
   }
 
   Future<int> updateBudget(Budget budget) async {
-    final db = await database;
-    return await db.update(
-      'budgets',
-      budget.toMap(),
-      where: 'id = ?',
-      whereArgs: [budget.id],
-    );
+    final list = await _readList(_budgetsKey);
+    final idx = list.indexWhere((m) => m['id'] == budget.id);
+    if (idx == -1) return 0;
+    list[idx] = budget.toMap();
+    await _writeList(_budgetsKey, list);
+    return 1;
   }
 
   Future<int> deleteBudget(String id) async {
-    final db = await database;
-    return await db.delete(
-      'budgets',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    final list = await _readList(_budgetsKey);
+    final before = list.length;
+    list.removeWhere((m) => m['id'] == id);
+    await _writeList(_budgetsKey, list);
+    return before - list.length;
   }
 
-  // Analytics operations
+  // ─── Analytics ─────────────────────────────────────────────────────────────
+
   Future<double> getTotalExpenses(DateTime start, DateTime end) async {
-    final db = await database;
-    final result = await db.rawQuery('''
-      SELECT SUM(amount) as total FROM expenses 
-      WHERE date >= ? AND date <= ? AND isIncome = 0
-    ''', [start.toIso8601String(), end.toIso8601String()]);
-    
-    return result.first['total'] as double? ?? 0.0;
+    final expenses = await getExpensesByDateRange(start, end);
+    return expenses
+        .where((e) => !e.isIncome)
+        .fold<double>(0.0, (sum, e) => sum + e.amount);
   }
 
   Future<double> getTotalIncome(DateTime start, DateTime end) async {
-    final db = await database;
-    final result = await db.rawQuery('''
-      SELECT SUM(amount) as total FROM expenses 
-      WHERE date >= ? AND date <= ? AND isIncome = 1
-    ''', [start.toIso8601String(), end.toIso8601String()]);
-    
-    return result.first['total'] as double? ?? 0.0;
+    final expenses = await getExpensesByDateRange(start, end);
+    return expenses
+        .where((e) => e.isIncome)
+        .fold<double>(0.0, (sum, e) => sum + e.amount);
   }
 
-  Future<Map<String, double>> getExpensesByCategorySummary(DateTime start, DateTime end) async {
-    final db = await database;
-    final result = await db.rawQuery('''
-      SELECT category, SUM(amount) as total FROM expenses 
-      WHERE date >= ? AND date <= ? AND isIncome = 0
-      GROUP BY category
-    ''', [start.toIso8601String(), end.toIso8601String()]);
-    
-    final Map<String, double> categoryExpenses = {};
-    for (final row in result) {
-      categoryExpenses[row['category'] as String] = row['total'] as double;
+  Future<Map<String, double>> getExpensesByCategorySummary(
+      DateTime start, DateTime end) async {
+    final expenses = await getExpensesByDateRange(start, end);
+    final Map<String, double> result = {};
+    for (final e in expenses.where((e) => !e.isIncome)) {
+      result[e.category] = (result[e.category] ?? 0.0) + e.amount;
     }
-    return categoryExpenses;
+    return result;
   }
 
-  // Database maintenance
-  Future<void> close() async {
-    final db = _database;
-    if (db != null) {
-      await db.close();
-      _database = null;
-    }
-  }
+  // ─── Maintenance ───────────────────────────────────────────────────────────
 
   Future<void> clearAllData() async {
-    final db = await database;
-    await db.delete('expenses');
-    await db.delete('budgets');
-    // Keep default categories
-    await db.delete('categories', where: 'isDefault = ?', whereArgs: [0]);
+    final prefs = await _storage;
+    await prefs.remove(_expensesKey);
+    await prefs.remove(_budgetsKey);
+    // Keep default categories; remove only custom ones
+    final cats = await _readList(_categoriesKey);
+    final defaults = cats.where((m) => (m['isDefault'] ?? 0) == 1).toList();
+    await _writeList(_categoriesKey, defaults);
+  }
+
+  Future<void> close() async {
+    // No-op for shared_preferences — nothing to close.
   }
 }

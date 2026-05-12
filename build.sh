@@ -13,6 +13,6 @@ export PATH="$PWD/flutter/bin:$PATH"
 flutter pub get
 
 # Build for web
-flutter build web --web-renderer canvaskit
+flutter build web --release
 
 echo "Build completed successfully!"

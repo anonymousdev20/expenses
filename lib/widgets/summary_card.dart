@@ -21,15 +21,16 @@ class SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fmt = NumberFormat('#,##,##0.00', 'en_IN');
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: AppTheme.primaryBlue.withOpacity(0.07),
+            blurRadius: 14,
             offset: const Offset(0, 4),
           ),
         ],
@@ -40,43 +41,38 @@ class SummaryCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 24,
-                ),
+                child: Icon(icon, color: color, size: 22),
               ),
               const Spacer(),
               if (subtitle.isNotEmpty)
                 Text(
                   subtitle,
                   style: AppTheme.captionStyle.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Text(
             title,
-            style: AppTheme.subtitleStyle.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            style: AppTheme.captionStyle.copyWith(
+              color: AppTheme.textSecondary,
+              fontSize: 13,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
-            NumberFormat.currency(
-              symbol: AppConstants.defaultCurrency,
-              decimalDigits: 2,
-            ).format(amount),
+            '${AppConstants.currencySymbol} ${fmt.format(amount.abs())}',
             style: AppTheme.titleStyle.copyWith(
               color: color,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w800,
+              fontSize: 22,
             ),
           ),
         ],

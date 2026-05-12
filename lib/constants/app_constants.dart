@@ -11,9 +11,10 @@ class AppConstants {
   static const int databaseVersion = 1;
 
   // Currency
-  static const String defaultCurrency = 'USD';
+  static const String defaultCurrency = 'INR';
+  static const String currencySymbol = '₹';
   static const List<String> supportedCurrencies = [
-    'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'INR', 'BRL'
+    'INR', 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'BRL'
   ];
 
   // Date Formats
