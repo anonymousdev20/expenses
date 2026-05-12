@@ -1,0 +1,105 @@
+name: Build and Deploy to Railway
+
+# Trigger on every push to master. The Flutter web build requires 4-8 GB of
+# RAM for Dart compilation, which exceeds Railway's build environment capacity.
+# GitHub Actions runners provide ~7 GB, so we build the Docker image here and
+# push the pre-built image to Railway's registry — Railway then deploys it
+# without needing to compile anything.
+on:
+  push:
+    branches:
+      - master
+
+env:
+  # Railway service ID for the "expenses" service.
+  # Found in the Railway dashboard URL or service settings.
+  RAILWAY_SERVICE_ID: ec9f3e34-e0ee-4bf2-adf8-ecf33f9bf5c3
+
+  # Railway's Docker registry host.
+  REGISTRY: registry.railway.com
+
+jobs:
+  build-and-deploy:
+    name: Build Docker image and deploy to Railway
+    runs-on: ubuntu-latest
+
+    steps:
+      # -----------------------------------------------------------------------
+      # 1. Check out the repository so we have the Dockerfile and source code.
+      # -----------------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      # 2. Install the Railway CLI so we can authenticate with the registry
+      #    and trigger the deployment at the end of the workflow.
+      #    Docs: https://docs.railway.com/guides/cli
+      # -----------------------------------------------------------------------
+      - name: Install Railway CLI
+        run: |
+          curl -fsSL https://railway.app/install.sh | sh
+          echo "$HOME/.railway/bin" >> $GITHUB_PATH
+
+      # -----------------------------------------------------------------------
+      # 3. Log in to Railway's Docker registry using the Railway API token.
+      #    Add RAILWAY_TOKEN as a secret in your GitHub repository:
+      #      Settings → Secrets and variables → Actions → New repository secret
+      #    Generate a token at: https://railway.app/account/tokens
+      # -----------------------------------------------------------------------
+      - name: Log in to Railway Docker registry
+        run: |
+          echo "${{ secrets.RAILWAY_TOKEN }}" | \
+            docker login "$REGISTRY" \
+              --username railway \
+              --password-stdin
+
+      # -----------------------------------------------------------------------
+      # 4. Build the Docker image using the existing multi-stage Dockerfile.
+      #    The image is tagged with both the short commit SHA (for traceability)
+      #    and "latest" (so Railway always has a stable tag to reference).
+      #
+      #    We set --memory and --shm-size to make the most of the 7 GB
+      #    available on the GitHub Actions runner during Dart compilation.
+      # -----------------------------------------------------------------------
+      - name: Build Docker image
+        run: |
+          IMAGE_TAG="${REGISTRY}/${RAILWAY_SERVICE_ID}/expenses"
+          SHORT_SHA="${GITHUB_SHA::8}"
+
+          docker build \
+            --memory=6g \
+            --shm-size=2g \
+            --tag "${IMAGE_TAG}:${SHORT_SHA}" \
+            --tag "${IMAGE_TAG}:latest" \
+            .
+
+          # Export the full image tag for use in later steps.
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
+          echo "SHORT_SHA=${SHORT_SHA}"  >> $GITHUB_ENV
+
+      # -----------------------------------------------------------------------
+      # 5. Push both tags to Railway's registry.
+      #    Railway will serve the image from here during deployment.
+      # -----------------------------------------------------------------------
+      - name: Push image to Railway registry
+        run: |
+          docker push "${IMAGE_TAG}:${SHORT_SHA}"
+          docker push "${IMAGE_TAG}:latest"
+
+      # -----------------------------------------------------------------------
+      # 6. Trigger a Railway deployment using the image we just pushed.
+      #    The Railway CLI reads RAILWAY_TOKEN from the environment automatically.
+      #    --image tells Railway to deploy the pre-built image rather than
+      #    rebuilding from source, which is what avoids the OOM issue entirely.
+      # -----------------------------------------------------------------------
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway up \
+            --service "$RAILWAY_SERVICE_ID" \
+            --image "${IMAGE_TAG}:${SHORT_SHA}" \
+            --detach
+
+          echo "Deployment triggered for image ${IMAGE_TAG}:${SHORT_SHA}"
+          echo "Monitor progress at: https://railway.app/project/expenses"
