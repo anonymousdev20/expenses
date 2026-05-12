@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_constants.dart';
 import '../constants/app_theme.dart';
 import 'dashboard_screen.dart';
@@ -12,285 +10,334 @@ class LandingScreen extends StatefulWidget {
   State<LandingScreen> createState() => _LandingScreenState();
 }
 
-class _LandingScreenState extends State<LandingScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _fadeController;
-  late AnimationController _slideController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+class _LandingScreenState extends State<LandingScreen> {
+  // Facebook-style colors from chat app
+  static const Color fbBlue = Color(0xFF1877F2);
+  static const Color fbDark = Color(0xFF18191A);
+  static const Color fbCard = Color(0xFF242526);
+  static const Color fbBorder = Color(0xFF3A3B3C);
+  static const Color fbText = Color(0xFFE4E6EB);
+  static const Color fbGray = Color(0xFFB0B3B8);
 
-  @override
-  void initState() {
-    super.initState();
-    
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-    
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    ));
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ));
-
-    _fadeController.forward();
-    _slideController.forward();
-  }
-
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    _slideController.dispose();
-    super.dispose();
-  }
+  String _mode = 'login';
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _showPassword = false;
+  String _statusMessage = '';
+  Color _statusColor = Colors.transparent;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFF0F0F0F),
-              const Color(0xFF1A1A1A),
-              const Color(0xFF2D2D2D).withOpacity(0.3),
+      backgroundColor: fbDark,
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 480),
+          padding: const EdgeInsets.symmetric(horizontal: 50),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo area - similar to chat app
+              _buildLogoSection(),
+              
+              const SizedBox(height: 20),
+              
+              // Card with login/register form
+              _buildCard(),
             ],
           ),
         ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 80),
-                
-                // Logo and Title Section
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Column(
-                      children: [
-                        // Logo
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.primaryColor,
-                                AppTheme.primaryColor.withOpacity(0.7),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.primaryColor.withOpacity(0.3),
-                                blurRadius: 20,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.account_balance_wallet_outlined,
-                            size: 60,
-                            color: Colors.white,
-                          ),
-                        ),
-                        
-                        const SizedBox(height: 32),
-                        
-                        // App Name
-                        Text(
-                          AppConstants.appName,
-                          style: GoogleFonts.inter(
-                            fontSize: 42,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: -1,
-                          ),
-                        ),
-                        
-                        const SizedBox(height: 12),
-                        
-                        // Tagline
-                        AnimatedTextKit(
-                          animatedTexts: [
-                            TypewriterAnimatedText(
-                              'Track expenses smarter',
-                              textStyle: GoogleFonts.inter(
-                                fontSize: 16,
-                                color: Colors.white.withOpacity(0.7),
-                                fontWeight: FontWeight.w400,
-                              ),
-                              speed: const Duration(milliseconds: 100),
-                            ),
-                          ],
-                          totalRepeatCount: 1,
-                        ),
-                        
-                        const SizedBox(height: 16),
-                        
-                        Text(
-                          'Manage your budget, analyze spending,\nand achieve financial freedom',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: Colors.white.withOpacity(0.5),
-                            height: 1.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+      ),
+    );
+  }
+
+  Widget _buildLogoSection() {
+    return Column(
+      children: [
+        // Wallet icon instead of chat icon
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: fbBlue.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Icon(
+            Icons.account_balance_wallet,
+            size: 40,
+            color: fbBlue,
+          ),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // App name
+        Text(
+          'ExpenseTracker',
+          style: TextStyle(
+            fontSize: 34,
+            fontWeight: FontWeight.bold,
+            color: fbBlue,
+          ),
+        ),
+        
+        const SizedBox(height: 8),
+        
+        // Tagline
+        Text(
+          'Track expenses and achieve financial freedom',
+          style: TextStyle(
+            fontSize: 13,
+            color: fbGray,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: fbCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: fbBorder),
+      ),
+      child: Column(
+        children: [
+          // Tabs for Login/Register
+          _buildTabs(),
+          
+          // Form fields
+          _buildFormFields(),
+          
+          // Status message
+          if (_statusMessage.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Text(
+                _statusMessage,
+                style: TextStyle(
+                  color: _statusColor,
+                  fontSize: 12,
                 ),
-                
-                const Spacer(),
-                
-                // Features Section
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.1),
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          _buildFeatureItem(
-                            icon: Icons.trending_up,
-                            title: 'Smart Analytics',
-                            description: 'Visualize spending patterns',
-                          ),
-                          const SizedBox(height: 16),
-                          _buildFeatureItem(
-                            icon: Icons.pie_chart,
-                            title: 'Budget Tracking',
-                            description: 'Set and monitor budgets',
-                          ),
-                          const SizedBox(height: 16),
-                          _buildFeatureItem(
-                            icon: Icons.cloud_off,
-                            title: 'Offline First',
-                            description: 'Works without internet',
-                          ),
-                        ],
+              ),
+            ),
+          
+          // Submit button
+          _buildSubmitButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabs() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 5),
+      child: Row(
+        children: [
+          // Login tab
+          Expanded(
+            child: Container(
+              height: 36,
+              decoration: BoxDecoration(
+                color: _mode == 'login' ? fbBlue : fbBorder,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(6),
+                  onTap: () => _switchMode('login'),
+                  child: Center(
+                    child: Text(
+                      'Log In',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
                     ),
                   ),
                 ),
-                
-                const SizedBox(height: 40),
-                
-                // CTA Buttons
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Column(
-                      children: [
-                        // Get Started Button
-                        Container(
-                          width: double.infinity,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.primaryColor,
-                                AppTheme.primaryColor.withOpacity(0.8),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.primaryColor.withOpacity(0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(16),
-                              onTap: () => _navigateToDashboard(),
-                              child: Center(
-                                child: Text(
-                                  'Get Started',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        
-                        const SizedBox(height: 16),
-                        
-                        // Sign In Button
-                        Container(
-                          width: double.infinity,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: Colors.transparent,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                            ),
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(16),
-                              onTap: () => _navigateToDashboard(),
-                              child: Center(
-                                child: Text(
-                                  'Sign In',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white.withOpacity(0.8),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(width: 8),
+          
+          // Register tab
+          Expanded(
+            child: Container(
+              height: 36,
+              decoration: BoxDecoration(
+                color: _mode == 'register' ? fbBlue : fbBorder,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(6),
+                  onTap: () => _switchMode('register'),
+                  child: Center(
+                    child: Text(
+                      'Create Account',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ),
-                
-                const SizedBox(height: 40),
-              ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormFields() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Username field
+          Text(
+            'Username',
+            style: TextStyle(
+              color: fbGray,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 2),
+          TextField(
+            controller: _usernameController,
+            style: TextStyle(
+              color: fbText,
+              fontSize: 14,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Username',
+              hintStyle: TextStyle(
+                color: fbGray.withOpacity(0.6),
+              ),
+              filled: true,
+              fillColor: const Color(0xFF3A3B3C),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: BorderSide(color: fbBorder),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: BorderSide(color: fbBorder),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(6),
+                borderSide: BorderSide(color: fbBlue),
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 10),
+          
+          // Password field
+          Text(
+            'Password',
+            style: TextStyle(
+              color: fbGray,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _passwordController,
+                  obscureText: !_showPassword,
+                  style: TextStyle(
+                    color: fbText,
+                    fontSize: 14,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Password',
+                    hintStyle: TextStyle(
+                      color: fbGray.withOpacity(0.6),
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFF3A3B3C),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(color: fbBorder),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(color: fbBorder),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(color: fbBlue),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3A3B3C),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: fbBorder),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(6),
+                    onTap: () => setState(() => _showPassword = !_showPassword),
+                    child: Center(
+                      child: Text(
+                        _showPassword ? '👁' : '👁‍🗨',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
+      child: Container(
+        width: double.infinity,
+        height: 44,
+        decoration: BoxDecoration(
+          color: fbBlue,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(6),
+            onTap: _handleSubmit,
+            child: Center(
+              child: Text(
+                _mode == 'login' ? 'Log In' : 'Create Account',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
             ),
           ),
         ),
@@ -298,75 +345,37 @@ class _LandingScreenState extends State<LandingScreen>
     );
   }
 
-  Widget _buildFeatureItem({
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(
-            icon,
-            color: AppTheme.primaryColor,
-            size: 20,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                description,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: Colors.white.withOpacity(0.6),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
+  void _switchMode(String mode) {
+    setState(() {
+      _mode = mode;
+      _statusMessage = '';
+      _statusColor = Colors.transparent;
+    });
   }
 
-  void _navigateToDashboard() {
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const DashboardScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOut;
+  void _handleSubmit() {
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
 
-          var tween = Tween(begin: begin, end: end).chain(
-            CurveTween(curve: curve),
-          );
+    if (username.isEmpty || password.isEmpty) {
+      setState(() {
+        _statusMessage = '⚠ Please fill in all fields';
+        _statusColor = const Color(0xFFFFA500);
+      });
+      return;
+    }
 
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 600),
-      ),
-    );
+    // Simulate login/register success
+    setState(() {
+      _statusMessage = '✓ Success!';
+      _statusColor = const Color(0xFF42B883);
+    });
+
+    // Navigate to dashboard after a short delay
+    Future.delayed(const Duration(milliseconds: 500), () {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const DashboardScreen()),
+      );
+    });
   }
 }
