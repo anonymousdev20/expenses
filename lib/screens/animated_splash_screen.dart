@@ -90,8 +90,8 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
     ));
 
     _colorAnimation = ColorTween(
-      begin: AppTheme.lightPrimary,
-      end: AppTheme.lightSecondary,
+      begin: AppTheme.primaryBlue,
+      end: AppTheme.primaryBlueLight,
     ).animate(CurvedAnimation(
       parent: _pulseController,
       curve: Curves.easeInOut,
