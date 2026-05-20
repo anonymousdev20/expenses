@@ -1,9 +1,6 @@
 [build]
-builder = "static"
-
-[static]
-publicDir = "web"
-command = "echo 'Web app ready'"
+builder = "dockerfile"
+dockerfilePath = "./Dockerfile.ci"
 
 [deploy]
 healthcheckPath = "/"

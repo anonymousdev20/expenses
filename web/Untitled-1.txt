@@ -1,0 +1,22 @@
+Command git in …/expense_tracker_pwa
+
+git add web/landing.html
+Command git in …/expense_tracker_pwa
+
+git commit -m "Update landing page formatting and styling"
+[master 459af1f] Update landing page formatting and styling
+ 1 file changed, 50 insertions(+), 27 deletions(-)
+
+Command git in …/expense_tracker_pwa
+
+
+git push origin master
+Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 665 bytes | 332.00 KiB/s, done.
+Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+To https://github.com/anonymousdev20/expenses.git
+   7a10faf..459af1f  master -> master
