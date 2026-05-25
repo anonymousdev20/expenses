@@ -9,6 +9,7 @@ import '../providers/expense_provider.dart';
 import '../screens/add_expense_screen.dart';
 import '../widgets/transaction_filter_chip.dart';
 import '../widgets/transaction_search_bar.dart';
+import '../services/pdf_service.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -75,6 +76,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           IconButton(
             icon: const Icon(Icons.filter_list),
             onPressed: _showFilterDialog,
+          ),
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            tooltip: 'Export PDF',
+            onPressed: _exportPdf,
           ),
         ],
       ),
@@ -245,6 +251,22 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       return 'Until ${DateFormat('MMM dd').format(end)}';
     }
     return '';
+  }
+
+  Future<void> _exportPdf() async {
+    final expenseProvider = Provider.of<ExpenseProvider>(context, listen: false);
+    final expenses = expenseProvider.expenses;
+    if (expenses.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No transactions to export')),
+      );
+      return;
+    }
+    await PdfService.exportExpenses(
+      context: context,
+      expenses: expenses,
+      title: 'Expense Report — ${DateFormat('MMMM yyyy').format(DateTime.now())}',
+    );
   }
 
   void _showFilterDialog() {
