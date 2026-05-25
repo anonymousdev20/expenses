@@ -207,8 +207,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 decoration: InputDecoration(
                   labelText: 'Amount',
                   hintText: '0.00',
-                  prefixIcon: const Icon(Icons.attach_money),
-                  prefixText: '${AppConstants.defaultCurrency} ',
+                  prefixIcon: const Icon(Icons.currency_rupee),
+                  prefixText: '${AppConstants.currencySymbol} ',
                 ),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
