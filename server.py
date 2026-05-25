@@ -17,6 +17,17 @@ class ExpenseTrackerHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 self.path = '/build/web/index.html'
         
+        # Handle APK download
+        elif self.path in ('/app-release.apk', '/web/app-release.apk'):
+            apk_path = 'web/app-release.apk'
+            if os.path.exists(apk_path):
+                self.path = '/web/app-release.apk'
+            else:
+                self.send_response(302)
+                self.send_header('Location', 'https://github.com/anonymousdev20/expenses/releases/latest/download/app-release.apk')
+                self.end_headers()
+                return
+        
         # Handle app path - serve Flutter app
         elif self.path == '/app':
             self.path = '/build/web/index.html'
@@ -59,6 +70,10 @@ class ExpenseTrackerHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
         elif self.path.endswith(('.js', '.css')):
             self.send_header('Cache-Control', 'public, max-age=31536000')
+        elif self.path.endswith('.apk'):
+            self.send_header('Content-Type', 'application/vnd.android.package-archive')
+            self.send_header('Content-Disposition', 'attachment; filename="ExpensePro.apk"')
+            self.send_header('Cache-Control', 'no-cache')
         
         super().end_headers()
 
