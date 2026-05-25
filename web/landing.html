@@ -1,1431 +1,609 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>ExpensePro Manage — Next Gen Finance</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet" />
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-
-    <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.16/dist/lenis.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-
-    <style>
-        :root {
-            --bg: #020617;
-            --card: rgba(255, 255, 255, 0.05);
-            --stroke: rgba(255, 255, 255, 0.08);
-
-            --white: #ffffff;
-            --text: #cbd5e1;
-            --muted: #64748b;
-
-            --primary: #7c3aed;
-            --secondary: #06b6d4;
-            --accent: #f43f5e;
-
-            --shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg);
-            color: var(--white);
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        /* =========================
-           LOADER
-        ========================= */
-
-        .loader {
-            position: fixed;
-            inset: 0;
-            background: #020617;
-            z-index: 999999;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            transition: 1s ease;
-        }
-
-        .loader.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .loader-logo {
-            font-size: 3rem;
-            font-weight: 800;
-
-            background:
-                linear-gradient(90deg,
-                    #fff,
-                    #7c3aed,
-                    #06b6d4);
-
-            background-size: 200% auto;
-
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-
-            animation:
-                gradientMove 3s linear infinite,
-                pulseLogo 2s infinite;
-        }
-
-        @keyframes pulseLogo {
-
-            0%,
-            100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.08);
-            }
-        }
-
-        /* =========================
-           PROGRESS BAR
-        ========================= */
-
-        .progress-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 0%;
-            height: 3px;
-
-            background:
-                linear-gradient(90deg,
-                    #7c3aed,
-                    #06b6d4);
-
-            z-index: 999999;
-        }
-
-        /* =========================
-           BACKGROUND
-        ========================= */
-
-        .bg {
-            position: fixed;
-            inset: 0;
-            overflow: hidden;
-            z-index: -10;
-
-            background:
-                radial-gradient(circle at top left,
-                    rgba(124, 58, 237, 0.18),
-                    transparent 30%),
-
-                radial-gradient(circle at bottom right,
-                    rgba(6, 182, 212, 0.16),
-                    transparent 30%),
-
-                linear-gradient(180deg,
-                    #020617 0%,
-                    #030712 100%);
-        }
-
-        .noise {
-            position: absolute;
-            inset: 0;
-            opacity: .04;
-
-            background-image:
-                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cg fill='white' fill-opacity='0.35'%3E%3Ccircle cx='10' cy='10' r='1'/%3E%3C/g%3E%3C/svg%3E");
-
-            animation: grain 8s steps(10) infinite;
-        }
-
-        @keyframes grain {
-
-            0%,
-            100% {
-                transform: translate(0, 0);
-            }
-
-            20% {
-                transform: translate(-3%, 1%);
-            }
-
-            40% {
-                transform: translate(3%, -2%);
-            }
-
-            60% {
-                transform: translate(-1%, 3%);
-            }
-
-            80% {
-                transform: translate(2%, -1%);
-            }
-        }
-
-        .grid-overlay {
-            position: absolute;
-            inset: 0;
-
-            background-image:
-                linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-
-            background-size: 70px 70px;
-
-            mask-image:
-                radial-gradient(circle at center,
-                    black 30%,
-                    transparent 85%);
-        }
-
-        .gradient-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            opacity: .22;
-            animation: float 12s ease-in-out infinite alternate;
-        }
-
-        .orb1 {
-            width: 500px;
-            height: 500px;
-            background: #7c3aed;
-            top: -100px;
-            left: -100px;
-        }
-
-        .orb2 {
-            width: 450px;
-            height: 450px;
-            background: #06b6d4;
-            right: -100px;
-            bottom: -120px;
-            animation-delay: 2s;
-        }
-
-        .orb3 {
-            width: 280px;
-            height: 280px;
-            background: #f43f5e;
-            top: 45%;
-            left: 40%;
-            opacity: .1;
-        }
-
-        @keyframes float {
-            from {
-                transform: translateY(-30px) translateX(0px);
-            }
-
-            to {
-                transform: translateY(40px) translateX(30px);
-            }
-        }
-
-        /* =========================
-           SPOTLIGHT
-        ========================= */
-
-        .spotlight {
-            position: fixed;
-
-            width: 700px;
-            height: 700px;
-
-            border-radius: 50%;
-
-            background:
-                radial-gradient(circle,
-                    rgba(255, 255, 255, 0.08),
-                    transparent 60%);
-
-            pointer-events: none;
-
-            z-index: -1;
-
-            transform: translate(-50%, -50%);
-        }
-
-        /* =========================
-           PARTICLES
-        ========================= */
-
-        .particles span {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-
-            background: white;
-            border-radius: 50%;
-
-            opacity: .25;
-
-            animation:
-                floatParticle linear infinite;
-        }
-
-        @keyframes floatParticle {
-            from {
-                transform:
-                    translateY(100vh) scale(0);
-            }
-
-            to {
-                transform:
-                    translateY(-10vh) scale(1);
-            }
-        }
-
-        /* =========================
-           NAVBAR
-        ========================= */
-
-        .navbar {
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 999;
-
-            padding: 22px 40px;
-
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            backdrop-filter: blur(18px);
-
-            background:
-                rgba(2, 6, 23, 0.45);
-
-            border-bottom:
-                1px solid rgba(255, 255, 255, 0.06);
-
-            transition: .5s ease;
-        }
-
-        .logo {
-            font-size: 1.3rem;
-            font-weight: 800;
-        }
-
-        .logo span {
-            background:
-                linear-gradient(90deg,
-                    #fff,
-                    #7dd3fc);
-
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .nav-btn {
-            width: 48px;
-            height: 48px;
-
-            border-radius: 16px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border:
-                1px solid rgba(255, 255, 255, .08);
-
-            background:
-                rgba(255, 255, 255, .04);
-
-            transition: .4s ease;
-            cursor: pointer;
-        }
-
-        .nav-btn:hover {
-            transform: rotate(8deg) scale(1.08);
-        }
-
-        /* =========================
-           CONTAINER
-        ========================= */
-
-        .container {
-            width: min(1300px, 92%);
-            margin: auto;
-        }
-
-        /* =========================
-           HERO
-        ========================= */
-
-        .hero {
-            min-height: 100vh;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            text-align: center;
-            position: relative;
-        }
-
-        .hero-content {
-            max-width: 980px;
-            z-index: 2;
-        }
-
-        .tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-
-            padding: 10px 18px;
-            margin-bottom: 28px;
-
-            border-radius: 999px;
-
-            border:
-                1px solid rgba(255, 255, 255, .08);
-
-            background:
-                rgba(255, 255, 255, .05);
-
-            backdrop-filter: blur(10px);
-        }
-
-        .pulse {
-            width: 10px;
-            height: 10px;
-
-            border-radius: 50%;
-            background: #22c55e;
-
-            box-shadow: 0 0 20px #22c55e;
-
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            100% {
-                transform: scale(2.5);
-                opacity: 0;
-            }
-        }
-
-        .hero h1 {
-            font-size: clamp(3.5rem, 10vw, 7rem);
-            line-height: .92;
-            font-weight: 800;
-
-            margin-bottom: 28px;
-
-            background:
-                linear-gradient(90deg,
-                    #ffffff,
-                    #7c3aed,
-                    #06b6d4,
-                    #ffffff);
-
-            background-size: 300% auto;
-
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-
-            animation:
-                gradientMove 8s linear infinite;
-        }
-
-        @keyframes gradientMove {
-            to {
-                background-position: 300% center;
-            }
-        }
-
-        .hero p {
-            font-size: 1.1rem;
-            line-height: 1.8;
-
-            color: var(--text);
-
-            margin-bottom: 42px;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 18px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn-primary,
-        .btn-secondary {
-            padding: 18px 34px;
-
-            border-radius: 18px;
-
-            text-decoration: none;
-            font-weight: 700;
-
-            transition: .4s ease;
-
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-primary {
-            background:
-                linear-gradient(135deg,
-                    #fff,
-                    #dbeafe);
-
-            color: #000;
-        }
-
-        .btn-primary:hover {
-            transform:
-                translateY(-5px) scale(1.03);
-        }
-
-        .btn-secondary {
-            color: white;
-
-            border:
-                1px solid rgba(255, 255, 255, .1);
-
-            background:
-                rgba(255, 255, 255, .04);
-
-            backdrop-filter: blur(10px);
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-5px);
-        }
-
-        /* =========================
-           DASHBOARD
-        ========================= */
-
-        .dashboard-preview {
-            margin-top: 90px;
-
-            animation:
-                levitate 5s ease-in-out infinite;
-        }
-
-        @keyframes levitate {
-
-            0%,
-            100% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-12px);
-            }
-        }
-
-        .dashboard-card {
-            width: 100%;
-            max-width: 1050px;
-
-            margin: auto;
-            padding: 28px;
-
-            border-radius: 32px;
-
-            background:
-                rgba(255, 255, 255, .06);
-
-            border:
-                1px solid rgba(255, 255, 255, .08);
-
-            backdrop-filter: blur(30px);
-
-            box-shadow: var(--shadow);
-        }
-
-        .dashboard-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            margin-bottom: 24px;
-        }
-
-        .mini-pill {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1.2fr .8fr;
-            gap: 22px;
-        }
-
-        .analytics,
-        .small-card {
-            background:
-                rgba(255, 255, 255, .04);
-
-            border-radius: 26px;
-
-            padding: 28px;
-
-            border:
-                1px solid rgba(255, 255, 255, .06);
-        }
-
-        .chart {
-            height: 260px;
-            margin-top: 25px;
-        }
-
-        .line svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        .line path {
-            stroke-dasharray: 1200;
-            stroke-dashoffset: 1200;
-
-            filter:
-                drop-shadow(0 0 12px #7c3aed) drop-shadow(0 0 24px #06b6d4);
-
-            animation:
-                draw 4s ease forwards infinite alternate,
-                pulseGlow 2s infinite;
-        }
-
-        @keyframes draw {
-            to {
-                stroke-dashoffset: 0;
-            }
-        }
-
-        @keyframes pulseGlow {
-
-            0%,
-            100% {
-                filter:
-                    drop-shadow(0 0 10px #7c3aed) drop-shadow(0 0 20px #06b6d4);
-            }
-
-            50% {
-                filter:
-                    drop-shadow(0 0 24px #7c3aed) drop-shadow(0 0 40px #06b6d4);
-            }
-        }
-
-        .stats-column {
-            display: flex;
-            flex-direction: column;
-            gap: 22px;
-        }
-
-        /* =========================
-           FEATURES
-        ========================= */
-
-        .features {
-            padding: 120px 0;
-        }
-
-        .section-title {
-            text-align: center;
-            margin-bottom: 70px;
-        }
-
-        .section-title h2 {
-            font-size: clamp(2.5rem, 5vw, 4rem);
-            margin-bottom: 14px;
-        }
-
-        .section-title p {
-            color: var(--muted);
-        }
-
-        .feature-grid {
-            display: grid;
-            grid-template-columns:
-                repeat(auto-fit, minmax(320px, 1fr));
-
-            gap: 30px;
-        }
-
-        .glass-card {
-            position: relative;
-            overflow: hidden;
-
-            padding: 38px;
-
-            border-radius: 30px;
-
-            background:
-                rgba(255, 255, 255, .04);
-
-            border:
-                1px solid rgba(255, 255, 255, .08);
-
-            backdrop-filter: blur(20px);
-
-            transition: .4s ease;
-
-            transform-style: preserve-3d;
-            will-change: transform;
-        }
-
-        .glass-card::before {
-            content: '';
-
-            position: absolute;
-            inset: 0;
-
-            background:
-                linear-gradient(135deg,
-                    rgba(255, 255, 255, .08),
-                    transparent 40%);
-
-            opacity: 0;
-            transition: .4s;
-        }
-
-        .glass-card:hover::before {
-            opacity: 1;
-        }
-
-        .icon-box {
-            width: 72px;
-            height: 72px;
-
-            border-radius: 22px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            margin-bottom: 24px;
-
-            background:
-                linear-gradient(135deg,
-                    rgba(124, 58, 237, .4),
-                    rgba(6, 182, 212, .3));
-
-            font-size: 1.5rem;
-        }
-
-        .glass-card h3 {
-            margin-bottom: 16px;
-            font-size: 1.4rem;
-        }
-
-        .glass-card p {
-            color: var(--muted);
-            line-height: 1.7;
-        }
-
-        /* =========================
-           REVEAL
-        ========================= */
-
-        .reveal {
-            opacity: 0;
-            transform: translateY(70px);
-
-            transition:
-                1.2s cubic-bezier(.2, .65, .2, 1);
-        }
-
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* =========================
-           RESPONSIVE
-        ========================= */
-
-        @media(max-width:900px) {
-
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .navbar {
-                padding: 20px;
-            }
-
-            .hero {
-                padding-top: 120px;
-            }
-
-            .hero h1 {
-                font-size: 4rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ExpenseTracker – Take Control of Your Finances</title>
+  <link rel="icon" href="favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --blue:    #1877F2;
+      --blue-dk: #166FE5;
+      --dark:    #18191A;
+      --card:    #242526;
+      --border:  #3A3B3C;
+      --text:    #E4E6EB;
+      --gray:    #B0B3B8;
+      --green:   #42B883;
+      --red:     #FF4444;
+      --yellow:  #FFD600;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 40px;
+      background: rgba(24,25,26,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 20px; font-weight: 700;
+    }
+    .nav-brand i { color: var(--blue); font-size: 22px; }
+
+    .nav-links { display: flex; gap: 32px; }
+    .nav-links a {
+      font-size: 14px; font-weight: 500; color: var(--gray);
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      display: flex; gap: 10px;
+    }
+    .btn {
+      padding: 9px 20px; border-radius: 8px; font-size: 14px;
+      font-weight: 600; cursor: pointer; border: none; transition: all .2s;
+    }
+    .btn-ghost {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--border); }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: var(--blue-dk); }
+    .btn-lg { padding: 14px 32px; font-size: 16px; border-radius: 10px; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(24,119,242,.18) 0%, transparent 70%);
+    }
+
+    .hero-inner { max-width: 760px; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(24,119,242,.12); border: 1px solid rgba(24,119,242,.3);
+      color: var(--blue); border-radius: 100px;
+      padding: 6px 16px; font-size: 13px; font-weight: 600;
+      margin-bottom: 28px;
+    }
+    .hero-badge i { font-size: 12px; }
+
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 800; line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 20px;
+    }
+    .hero h1 span { color: var(--blue); }
+
+    .hero p {
+      font-size: 18px; color: var(--gray);
+      max-width: 560px; margin: 0 auto 40px;
+    }
+
+    .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    .hero-stats {
+      display: flex; justify-content: center; gap: 48px;
+      margin-top: 64px; flex-wrap: wrap;
+    }
+    .hero-stat { text-align: center; }
+    .hero-stat .num {
+      font-size: 32px; font-weight: 800; color: var(--text);
+    }
+    .hero-stat .num span { color: var(--blue); }
+    .hero-stat p { font-size: 13px; color: var(--gray); margin-top: 2px; }
+
+    /* ── SECTION COMMON ── */
+    section { padding: 96px 24px; }
+    .section-label {
+      font-size: 13px; font-weight: 600; color: var(--blue);
+      text-transform: uppercase; letter-spacing: 1.5px;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800; letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      font-size: 16px; color: var(--gray);
+      max-width: 520px; margin: 0 auto 56px;
+    }
+    .center { text-align: center; }
+
+    /* ── FEATURES ── */
+    .features { background: var(--card); }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1100px; margin: 0 auto;
+    }
+
+    .feature-card {
+      background: var(--dark);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: border-color .25s, transform .25s;
+    }
+    .feature-card:hover { border-color: var(--blue); transform: translateY(-4px); }
+
+    .feature-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; margin-bottom: 18px;
+    }
+
+    .feature-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p  { font-size: 14px; color: var(--gray); line-height: 1.7; }
+
+    /* ── DASHBOARD PREVIEW ── */
+    .preview { background: var(--dark); }
+
+    .preview-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 56px; align-items: center;
+    }
+
+    .preview-text .section-sub { margin: 0 0 32px; text-align: left; }
+    .preview-text .section-title { text-align: left; }
+    .preview-text .section-label { text-align: left; }
+
+    .check-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .check-list li {
+      display: flex; align-items: flex-start; gap: 12px;
+      font-size: 15px; color: var(--gray);
+    }
+    .check-list li i { color: var(--green); margin-top: 3px; flex-shrink: 0; }
+
+    .mock-dashboard {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.5);
+    }
+
+    .mock-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px;
+    }
+    .mock-header span { font-size: 16px; font-weight: 700; }
+    .mock-header small { font-size: 12px; color: var(--blue); }
+
+    .mock-cards {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px; margin-bottom: 20px;
+    }
+    .mock-card {
+      background: var(--dark); border-radius: 12px; padding: 14px;
+      border: 1px solid var(--border);
+    }
+    .mock-card .label { font-size: 11px; color: var(--gray); margin-bottom: 6px; }
+    .mock-card .value { font-size: 18px; font-weight: 700; }
+    .mock-card .value.green { color: var(--green); }
+    .mock-card .value.red   { color: var(--red); }
+    .mock-card .value.blue  { color: var(--blue); }
+
+    .mock-bar-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+    .mock-bars { display: flex; flex-direction: column; gap: 10px; }
+    .mock-bar-row { display: flex; align-items: center; gap: 10px; }
+    .mock-bar-row span { font-size: 12px; color: var(--gray); width: 80px; flex-shrink: 0; }
+    .mock-bar-track {
+      flex: 1; height: 8px; background: var(--border);
+      border-radius: 4px; overflow: hidden;
+    }
+    .mock-bar-fill { height: 100%; border-radius: 4px; }
+    .mock-bar-row .pct { font-size: 12px; color: var(--gray); width: 36px; text-align: right; }
+
+    /* ── HOW IT WORKS ── */
+    .how { background: var(--card); }
+
+    .steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 32px; max-width: 1000px; margin: 0 auto;
+      position: relative;
+    }
+
+    .step { text-align: center; }
+    .step-num {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: rgba(24,119,242,.15); border: 2px solid var(--blue);
+      color: var(--blue); font-size: 20px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .step h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .step p  { font-size: 14px; color: var(--gray); }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials { background: var(--dark); }
+
+    .testi-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px; max-width: 1000px; margin: 0 auto;
+    }
+
+    .testi-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px;
+    }
+    .stars { color: var(--yellow); font-size: 14px; margin-bottom: 14px; }
+    .testi-card p { font-size: 15px; color: var(--gray); line-height: 1.7; margin-bottom: 20px; }
+    .testi-author { display: flex; align-items: center; gap: 12px; }
+    .testi-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 16px; color: #fff;
+    }
+    .testi-author h4 { font-size: 14px; font-weight: 600; }
+    .testi-author small { font-size: 12px; color: var(--gray); }
+
+    /* ── CTA ── */
+    .cta-section {
+      background: radial-gradient(ellipse 80% 80% at 50% 50%, rgba(24,119,242,.2) 0%, transparent 70%);
+      text-align: center;
+    }
+    .cta-section .section-title { margin-bottom: 12px; }
+    .cta-section p { font-size: 17px; color: var(--gray); margin-bottom: 36px; }
+    .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      padding: 48px 40px 28px;
+    }
+    .footer-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px; margin-bottom: 40px;
+    }
+    .footer-brand p { font-size: 14px; color: var(--gray); margin-top: 10px; max-width: 260px; }
+    .footer-col h4 { font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+    .footer-col a {
+      display: block; font-size: 14px; color: var(--gray);
+      margin-bottom: 10px; transition: color .2s;
+    }
+    .footer-col a:hover { color: var(--text); }
+    .footer-bottom {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center;
+      border-top: 1px solid var(--border); padding-top: 24px;
+      font-size: 13px; color: var(--gray); flex-wrap: wrap; gap: 12px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { padding: 14px 20px; }
+      .nav-links { display: none; }
+      .preview-inner { grid-template-columns: 1fr; }
+      .mock-cards { grid-template-columns: 1fr 1fr; }
+      .footer-inner { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      nav { padding: 12px 16px; }
+      .hero { padding: 100px 16px 60px; }
+      .hero-stats { gap: 28px; }
+      .footer-inner { grid-template-columns: 1fr; }
+      .mock-cards { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
-
 <body>
 
-    <!-- LOADER -->
-    <div class="loader">
-        <div class="loader-logo">
-            ExpensePro Manage
-        </div>
+  <!-- NAV -->
+  <nav>
+    <div class="nav-brand">
+      <i class="fa-solid fa-wallet"></i>
+      ExpenseTracker
     </div>
-
-    <!-- PROGRESS BAR -->
-    <div class="progress-bar"></div>
-
-    <!-- SPOTLIGHT -->
-    <div class="spotlight"></div>
-
-    <!-- BACKGROUND -->
-    <div class="bg">
-
-        <div class="noise"></div>
-
-        <div class="grid-overlay"></div>
-
-        <div class="particles"></div>
-
-        <div class="gradient-orb orb1" id="orb1"></div>
-        <div class="gradient-orb orb2" id="orb2"></div>
-        <div class="gradient-orb orb3" id="orb3"></div>
-
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#testimonials">Reviews</a>
     </div>
+    <div class="nav-cta">
+      <a href="index.html"><button class="btn btn-ghost">Log In</button></a>
+      <a href="index.html"><button class="btn btn-primary">Get Started</button></a>
+    </div>
+  </nav>
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-
-        <div class="logo">
-            ExpensePro<span> Manage</span>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge"><i class="fa-solid fa-bolt"></i> Smart expense tracking, simplified</div>
+      <h1>Take Control of<br /><span>Your Finances</span></h1>
+      <p>Track every rupee, set budgets, and get insights that help you spend smarter and save more — all in one place.</p>
+      <div class="hero-actions">
+        <a href="index.html"><button class="btn btn-primary btn-lg"><i class="fa-solid fa-rocket"></i> &nbsp;Start for Free</button></a>
+        <a href="#features"><button class="btn btn-ghost btn-lg">See Features</button></a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="num">50<span>K+</span></div>
+          <p>Active Users</p>
         </div>
-
-        <div class="nav-btn">
-            <i class="fa-solid fa-bars"></i>
+        <div class="hero-stat">
+          <div class="num">₹2<span>B+</span></div>
+          <p>Expenses Tracked</p>
         </div>
-
-    </nav>
-
-    <!-- HERO -->
-    <section class="hero">
-
-        <div class="container">
-
-            <div class="hero-content">
-
-                <div class="tag">
-                    <div class="pulse"></div>
-                    AI Powered Financial Intelligence
-                </div>
- 
-                <h1>
-                    Track Faster.<br>
-                    Spend Smarter.
-                </h1>
-
-                <p>
-                    Built for India — track every paisa, manage your ₹ budget
-                    with real-time insights, smart spending alerts,
-                    and bank-level security tailored for Indian users.
-                </p>
-
-                <div class="hero-buttons">
-
-                    <a href="#" class="btn-primary">
-                        Launch Dashboard
-                    </a>
-
-                    <a href="#" class="btn-secondary">
-                        Watch Demo
-                    </a>
-
-                </div>
-
-                <!-- DASHBOARD -->
-
-                <div class="dashboard-preview">
-
-                    <div class="dashboard-card">
-
-                        <div class="dashboard-top">
-
-                            <div style="display:flex; gap:10px;">
-                                <div class="mini-pill" style="background:#ef4444;"></div>
-                                <div class="mini-pill" style="background:#f59e0b;"></div>
-                                <div class="mini-pill" style="background:#22c55e;"></div>
-                            </div>
-
-                            <div style="color:#94a3b8;">
-                                Expense Analytics
-                            </div>
-
-                        </div>
-
-                        <div class="dashboard-grid">
-
-                            <div class="analytics">
-
-                                <div style="display:flex; justify-content:space-between;">
-
-                                    <div>
-
-                                        <div style="color:#94a3b8;">
-                                            Total Balance
-                                        </div>
-
-                                        <h2 style="font-size:2.8rem; margin-top:10px;">
-                                            $84,290
-                                        </h2>
-
-                                    </div>
-
-                                    <div style="
-                                        background:rgba(34,197,94,.15);
-                                        color:#4ade80;
-                                        padding:10px 16px;
-                                        border-radius:14px;
-                                        height:fit-content;
-                                    ">
-                                        +18.2%
-                                    </div>
-
-                                </div>
-
-                                <div class="chart">
-
-                                    <div class="line">
-
-                                        <svg viewBox="0 0 600 260" fill="none">
-
-                                            <defs>
-
-                                                <linearGradient id="lineGradient">
-
-                                                    <stop offset="0%" stop-color="#7c3aed" />
-
-                                                    <stop offset="100%" stop-color="#06b6d4" />
-
-                                                </linearGradient>
-
-                                            </defs>
-
-                                            <path d="
-                                                M0 220
-                                                C80 190,
-                                                120 120,
-                                                200 140
-
-                                                S320 230,
-                                                400 160
-
-                                                S520 80,
-                                                600 40
-                                            " stroke="url(#lineGradient)" stroke-width="5" stroke-linecap="round" />
-
-                                        </svg>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div class="stats-column">
-
-                                <div class="small-card">
-
-                                    <div style="color:#94a3b8;">
-                                        Monthly Savings
-                                    </div>
-
-                                    <h2 style="font-size:2.2rem; margin-top:12px;">
-                                        $12.4K
-                                    </h2>
-
-                                    <div style="
-                                        margin-top:18px;
-                                        height:8px;
-                                        border-radius:100px;
-                                        background:rgba(255,255,255,.06);
-                                        overflow:hidden;
-                                    ">
-                                        <div style="
-                                            width:78%;
-                                            height:100%;
-
-                                            background:
-                                            linear-gradient(90deg,
-                                            #7c3aed,
-                                            #06b6d4);
-
-                                            border-radius:100px;
-                                        ">
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                <div class="small-card">
-
-                                    <div style="color:#94a3b8;">
-                                        AI Prediction
-                                    </div>
-
-                                    <h2 style="
-                                        font-size:1.6rem;
-                                        margin-top:12px;
-                                        line-height:1.4;
-                                    ">
-                                        Spending reduced by
-                                        31% this quarter.
-                                    </h2>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
+        <div class="hero-stat">
+          <div class="num">4.9<span>★</span></div>
+          <p>Average Rating</p>
         </div>
-
-    </section>
-
-    <!-- FEATURES -->
-
-    <section class="features">
-
-        <div class="container">
-
-            <div class="section-title reveal">
-
-                <h2>
-                    Designed For The Future
-                </h2>
-
-                <p>
-                    Built with premium interactions,
-                    fluid motion and ultra-modern visuals.
-                </p>
-
-            </div>
-
-            <div class="feature-grid">
-
-                <div class="glass-card reveal">
-
-                    <div class="icon-box">
-                        <i class="fa-solid fa-fingerprint"></i>
-                    </div>
-
-                    <h3>Biometric Vault</h3>
-
-                    <p>
-                        Multi-layer encrypted authentication
-                        with secure local data isolation
-                        and AI fraud detection systems.
-                    </p>
-
-                </div>
-
-                <div class="glass-card reveal">
-
-                    <div class="icon-box">
-                        <i class="fa-solid fa-chart-line"></i>
-                    </div>
-
-                    <h3>Real-Time Analytics</h3>
-
-                    <p>
-                        Beautifully animated live dashboards
-                        with predictive spending intelligence
-                        and smooth SVG rendering.
-                    </p>
-
-                </div>
-
-                <div class="glass-card reveal">
-
-                    <div class="icon-box">
-                        <i class="fa-solid fa-cloud-bolt"></i>
-                    </div>
-
-                    <h3>Instant Sync</h3>
-
-                    <p>
-                        Millisecond cloud synchronization
-                        engineered with edge acceleration
-                        and offline-first architecture.
-                    </p>
-
-                </div>
-
-            </div>
-
+        <div class="hero-stat">
+          <div class="num">100<span>%</span></div>
+          <p>Free to Use</p>
         </div>
-
-    </section>
-
-    <script>
-
-        // =========================
-        // LOADER
-        // =========================
-
-        window.addEventListener("load", () => {
-
-            setTimeout(() => {
-
-                document
-                    .querySelector(".loader")
-                    .classList.add("hidden");
-
-            }, 1500);
-
-        });
-
-        // =========================
-        // LENIS SMOOTH SCROLL
-        // =========================
-
-        const lenis = new Lenis({
-            duration: 1.2,
-            smoothWheel: true
-        });
-
-        function raf(time) {
-
-            lenis.raf(time);
-
-            requestAnimationFrame(raf);
-
-        }
-
-        requestAnimationFrame(raf);
-
-        // =========================
-        // PROGRESS BAR
-        // =========================
-
-        const progressBar =
-            document.querySelector(".progress-bar");
-
-        window.addEventListener("scroll", () => {
-
-            const scroll = window.scrollY;
-
-            const height =
-                document.body.scrollHeight -
-                window.innerHeight;
-
-            const progress =
-                (scroll / height) * 100;
-
-            progressBar.style.width =
-                progress + "%";
-
-        });
-
-        // =========================
-        // SPOTLIGHT
-        // =========================
-
-        const spotlight =
-            document.querySelector(".spotlight");
-
-        document.addEventListener("mousemove", (e) => {
-
-            spotlight.style.left =
-                e.clientX + "px";
-
-            spotlight.style.top =
-                e.clientY + "px";
-
-        });
-
-        // =========================
-        // PARTICLES
-        // =========================
-
-        const particles =
-            document.querySelector(".particles");
-
-        for (let i = 0; i < 80; i++) {
-
-            const p =
-                document.createElement("span");
-
-            p.style.left =
-                Math.random() * 100 + "vw";
-
-            p.style.animationDuration =
-                5 + Math.random() * 10 + "s";
-
-            p.style.opacity =
-                Math.random();
-
-            p.style.width =
-                p.style.height =
-                Math.random() * 4 + 2 + "px";
-
-            particles.appendChild(p);
-        }
-
-        // =========================
-        // PARALLAX ORBS
-        // =========================
-
-        const orb1 =
-            document.getElementById("orb1");
-
-        const orb2 =
-            document.getElementById("orb2");
-
-        const orb3 =
-            document.getElementById("orb3");
-
-        document.addEventListener("mousemove", (e) => {
-
-            let x =
-                e.clientX / window.innerWidth;
-
-            let y =
-                e.clientY / window.innerHeight;
-
-            orb1.style.transform =
-                `translate(${x * 40}px, ${y * 30}px)`;
-
-            orb2.style.transform =
-                `translate(-${x * 50}px, -${y * 40}px)`;
-
-            orb3.style.transform =
-                `translate(${x * 80}px, -${y * 50}px)`;
-
-        });
-
-        // =========================
-        // NAVBAR MORPH
-        // =========================
-
-        const navbar =
-            document.querySelector(".navbar");
-
-        window.addEventListener("scroll", () => {
-
-            if (window.scrollY > 80) {
-
-                navbar.style.padding =
-                    "14px 30px";
-
-                navbar.style.background =
-                    "rgba(2,6,23,.8)";
-
-                navbar.style.borderRadius =
-                    "0 0 24px 24px";
-
-            } else {
-
-                navbar.style.padding =
-                    "22px 40px";
-
-                navbar.style.background =
-                    "rgba(2,6,23,.45)";
-
-            }
-
-        });
-
-        // =========================
-        // REVEAL
-        // =========================
-
-        const reveals =
-            document.querySelectorAll(".reveal");
-
-        const observer =
-            new IntersectionObserver((entries) => {
-
-                entries.forEach((entry) => {
-
-                    if (entry.isIntersecting) {
-
-                        entry.target.classList
-                            .add("active");
-
-                    }
-
-                });
-
-            }, {
-                threshold: 0.15
-            });
-
-        reveals.forEach((el) =>
-            observer.observe(el));
-
-        // =========================
-        // MAGNETIC BUTTONS
-        // =========================
-
-        const buttons =
-            document.querySelectorAll(
-                ".btn-primary,.btn-secondary"
-            );
-
-        buttons.forEach(btn => {
-
-            btn.addEventListener("mousemove", (e) => {
-
-                const rect =
-                    btn.getBoundingClientRect();
-
-                const x =
-                    e.clientX - rect.left -
-                    rect.width / 2;
-
-                const y =
-                    e.clientY - rect.top -
-                    rect.height / 2;
-
-                btn.style.transform =
-                    `translate(${x * .08}px, ${y * .12}px)`;
-
-            });
-
-            btn.addEventListener("mouseleave", () => {
-
-                btn.style.transform = "";
-
-            });
-
-        });
-
-        // =========================
-        // 3D CARDS
-        // =========================
-
-        const cards =
-            document.querySelectorAll(".glass-card");
-
-        cards.forEach(card => {
-
-            card.addEventListener("mousemove", (e) => {
-
-                const rect =
-                    card.getBoundingClientRect();
-
-                const x =
-                    e.clientX - rect.left;
-
-                const y =
-                    e.clientY - rect.top;
-
-                const centerX =
-                    rect.width / 2;
-
-                const centerY =
-                    rect.height / 2;
-
-                const rotateX =
-                    (y - centerY) / 18;
-
-                const rotateY =
-                    (centerX - x) / 18;
-
-                card.style.transform =
-                    `
-                    perspective(1000px)
-                    rotateX(${rotateX}deg)
-                    rotateY(${rotateY}deg)
-                    translateY(-8px)
-                    `;
-
-            });
-
-            card.addEventListener("mouseleave", () => {
-
-                card.style.transform =
-                    `
-                    perspective(1000px)
-                    rotateX(0deg)
-                    rotateY(0deg)
-                    translateY(0px)
-                    `;
-
-            });
-
-        });
-
-        // =========================
-        // GSAP
-        // =========================
-
-        gsap.from(".hero h1", {
-
-            y: 120,
-            opacity: 0,
-
-            duration: 1.4,
-
-            ease: "power4.out"
-
-        });
-
-        gsap.from(".hero p", {
-
-            y: 80,
-            opacity: 0,
-
-            duration: 1.5,
-            delay: .2,
-
-            ease: "power4.out"
-
-        });
-
-        gsap.from(".dashboard-card", {
-
-            scale: .85,
-            opacity: 0,
-
-            duration: 1.8,
-            delay: .3,
-
-            ease: "expo.out"
-
-        });
-
-    </script>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="center">
+      <div class="section-label">Features</div>
+      <h2 class="section-title">Everything you need to manage money</h2>
+      <p class="section-sub">Powerful tools designed to give you a complete picture of your financial health.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(24,119,242,.12)">
+          <i class="fa-solid fa-chart-pie" style="color:#1877F2"></i>
+        </div>
+        <h3>Smart Analytics</h3>
+        <p>Visual charts and breakdowns show exactly where your money goes each month.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(66,184,131,.12)">
+          <i class="fa-solid fa-bullseye" style="color:#42B883"></i>
+        </div>
+        <h3>Budget Goals</h3>
+        <p>Set monthly budgets per category and get alerts before you overspend.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,214,0,.12)">
+          <i class="fa-solid fa-tags" style="color:#FFD600"></i>
+        </div>
+        <h3>Custom Categories</h3>
+        <p>Create your own expense categories with icons and colors to match your lifestyle.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(255,68,68,.12)">
+          <i class="fa-solid fa-bell" style="color:#FF4444"></i>
+        </div>
+        <h3>Instant Alerts</h3>
+        <p>Get notified when you're close to your budget limit or when unusual spending is detected.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(24,119,242,.12)">
+          <i class="fa-solid fa-mobile-screen" style="color:#1877F2"></i>
+        </div>
+        <h3>Works Offline</h3>
+        <p>Progressive Web App — install it on any device and use it even without internet.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(66,184,131,.12)">
+          <i class="fa-solid fa-file-export" style="color:#42B883"></i>
+        </div>
+        <h3>Export Reports</h3>
+        <p>Download monthly or yearly reports as CSV or PDF for tax filing or personal review.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD PREVIEW -->
+  <section class="preview" id="preview">
+    <div class="preview-inner">
+      <div class="preview-text">
+        <div class="section-label">Dashboard</div>
+        <h2 class="section-title">Your finances at a glance</h2>
+        <p class="section-sub">A clean, real-time dashboard that shows your income, expenses, and savings — updated the moment you add a transaction.</p>
+        <ul class="check-list">
+          <li><i class="fa-solid fa-circle-check"></i> Real-time balance and spending summary</li>
+          <li><i class="fa-solid fa-circle-check"></i> Category-wise expense breakdown</li>
+          <li><i class="fa-solid fa-circle-check"></i> Budget progress bars with color alerts</li>
+          <li><i class="fa-solid fa-circle-check"></i> Recent transactions with search & filter</li>
+          <li><i class="fa-solid fa-circle-check"></i> Monthly trend charts</li>
+        </ul>
+      </div>
+
+      <!-- Mock Dashboard UI -->
+      <div class="mock-dashboard">
+        <div class="mock-header">
+          <span>📊 Dashboard</span>
+          <small>June 2025</small>
+        </div>
+        <div class="mock-cards">
+          <div class="mock-card">
+            <div class="label">Balance</div>
+            <div class="value blue">₹24,500</div>
+          </div>
+          <div class="mock-card">
+            <div class="label">Income</div>
+            <div class="value green">₹60,000</div>
+          </div>
+          <div class="mock-card">
+            <div class="label">Expenses</div>
+            <div class="value red">₹35,500</div>
+          </div>
+        </div>
+        <div class="mock-bar-title">Spending by Category</div>
+        <div class="mock-bars">
+          <div class="mock-bar-row">
+            <span>🍔 Food</span>
+            <div class="mock-bar-track"><div class="mock-bar-fill" style="width:72%;background:#1877F2"></div></div>
+            <span class="pct">72%</span>
+          </div>
+          <div class="mock-bar-row">
+            <span>🚗 Travel</span>
+            <div class="mock-bar-track"><div class="mock-bar-fill" style="width:45%;background:#42B883"></div></div>
+            <span class="pct">45%</span>
+          </div>
+          <div class="mock-bar-row">
+            <span>🛍 Shopping</span>
+            <div class="mock-bar-track"><div class="mock-bar-fill" style="width:88%;background:#FF4444"></div></div>
+            <span class="pct">88%</span>
+          </div>
+          <div class="mock-bar-row">
+            <span>💡 Bills</span>
+            <div class="mock-bar-track"><div class="mock-bar-fill" style="width:30%;background:#FFD600"></div></div>
+            <span class="pct">30%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="how">
+    <div class="center">
+      <div class="section-label">How it works</div>
+      <h2 class="section-title">Up and running in minutes</h2>
+      <p class="section-sub">No complicated setup. Just sign up and start tracking.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Create Account</h3>
+        <p>Sign up for free in seconds — no credit card required.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Add Expenses</h3>
+        <p>Log transactions manually or import from your bank statement.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Set Budgets</h3>
+        <p>Define spending limits for each category to stay on track.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Get Insights</h3>
+        <p>View analytics and reports to understand and improve your habits.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials" id="testimonials">
+    <div class="center">
+      <div class="section-label">Reviews</div>
+      <h2 class="section-title">Loved by thousands</h2>
+      <p class="section-sub">Here's what our users say about ExpenseTracker.</p>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card">
+        <div class="stars">★★★★★</div>
+        <p>"Finally an expense tracker that doesn't feel overwhelming. The dashboard is clean and the budget alerts are a lifesaver."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#1877F2">R</div>
+          <div>
+            <h4>Rahul Sharma</h4>
+            <small>Software Engineer</small>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="stars">★★★★★</div>
+        <p>"I've tried many apps but this one sticks. The category breakdown helped me cut my food spending by 30% in one month."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#42B883">P</div>
+          <div>
+            <h4>Priya Nair</h4>
+            <small>Freelance Designer</small>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="stars">★★★★★</div>
+        <p>"Works offline, looks great, and the export feature is perfect for my CA. Highly recommend to anyone serious about saving."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#FF4444">A</div>
+          <div>
+            <h4>Arjun Mehta</h4>
+            <small>Business Owner</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="section-label center">Get Started</div>
+    <h2 class="section-title">Ready to take control?</h2>
+    <p>Join 50,000+ users who track smarter and save more every month.</p>
+    <div class="cta-actions">
+      <a href="index.html"><button class="btn btn-primary btn-lg"><i class="fa-solid fa-rocket"></i> &nbsp;Start for Free</button></a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="nav-brand" style="font-size:18px">
+          <i class="fa-solid fa-wallet"></i> ExpenseTracker
+        </div>
+        <p>A simple, powerful PWA to track your expenses and reach your financial goals.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="index.html">Dashboard</a>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <a href="#">FAQ</a>
+        <a href="#">Contact</a>
+        <a href="#">Privacy Policy</a>
+      </div>
+      <div class="footer-col">
+        <h4>Account</h4>
+        <a href="index.html">Log In</a>
+        <a href="index.html">Sign Up</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 ExpenseTracker. All rights reserved.</span>
+      <span>Made with ❤️ for better finances</span>
+    </div>
+  </footer>
 
 </body>
-
 </html>
