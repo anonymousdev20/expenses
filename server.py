@@ -14,10 +14,17 @@ def index():
 
 @app.route('/download')
 def download_apk():
-    apk_path = os.path.join(os.path.dirname(__file__), 'web')
-    return send_from_directory(apk_path, 'app-release.apk',
-                               as_attachment=True,
-                               download_name='ExpensePro.apk')
+    apk_path = os.path.join(os.path.dirname(__file__), 'web', 'app-release.apk')
+    if os.path.exists(apk_path):
+        return send_from_directory(
+            os.path.join(os.path.dirname(__file__), 'web'),
+            'app-release.apk',
+            as_attachment=True,
+            download_name='ExpensePro.apk'
+        )
+    # Fallback: redirect to GitHub release
+    from flask import redirect
+    return redirect('https://github.com/anonymousdev20/expenses/releases/latest/download/app-release.apk')
 
 @app.route('/<path:path>')
 def static_files(path):
