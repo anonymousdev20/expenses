@@ -1,87 +1,38 @@
 #!/usr/bin/env python3
-import http.server
-import socketserver
+from flask import Flask, send_from_directory, redirect
 import os
-from urllib.parse import unquote
 
-class ExpenseTrackerHandler(http.server.SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=".", **kwargs)
-    
-    def do_GET(self):
-        # Handle root path - serve Flutter app directly if no landing page
-        if self.path == '/':
-            # Try to serve landing page first, fallback to Flutter app
-            if os.path.exists('web/landing.html'):
-                self.path = '/web/landing.html'
-            else:
-                self.path = '/build/web/index.html'
-        
-        # Handle APK download
-        elif self.path in ('/app-release.apk', '/web/app-release.apk'):
-            apk_path = 'web/app-release.apk'
-            if os.path.exists(apk_path):
-                self.path = '/web/app-release.apk'
-            else:
-                self.send_response(302)
-                self.send_header('Location', 'https://github.com/anonymousdev20/expenses/releases/latest/download/app-release.apk')
-                self.end_headers()
-                return
-        
-        # Handle app path - serve Flutter app
-        elif self.path == '/app':
-            self.path = '/build/web/index.html'
-        
-        # Handle Flutter app routes
-        elif self.path.startswith('/app/'):
-            self.path = '/build/web/' + self.path[5:]
-        
-        # Handle other static files
-        elif self.path.startswith('/web/'):
-            # Serve web files directly
-            pass
-        elif self.path.startswith('/build/web/'):
-            # Serve build files directly
-            pass
-        else:
-            # Default to Flutter app for unknown routes
-            self.path = '/build/web/index.html'
-        
-        # Decode the path and check if file exists
-        decoded_path = unquote(self.path).lstrip('/')
-        if os.path.exists(decoded_path) and os.path.isfile(decoded_path):
-            super().do_GET()
-        else:
-            # If file doesn't exist, serve the Flutter app index
-            self.path = '/build/web/index.html'
-            if os.path.exists('build/web/index.html'):
-                super().do_GET()
-            else:
-                self.send_error(404, "File not found")
-    
-    def end_headers(self):
-        # Add CORS headers for PWA functionality
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        
-        # Add PWA headers
-        if self.path.endswith('.html'):
-            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
-        elif self.path.endswith(('.js', '.css')):
-            self.send_header('Cache-Control', 'public, max-age=31536000')
-        elif self.path.endswith('.apk'):
-            self.send_header('Content-Type', 'application/vnd.android.package-archive')
-            self.send_header('Content-Disposition', 'attachment; filename="ExpensePro.apk"')
-            self.send_header('Cache-Control', 'no-cache')
-        
-        super().end_headers()
+app = Flask(__name__, static_folder='web', static_url_path='')
 
-if __name__ == "__main__":
+@app.route('/')
+def landing():
+    return send_from_directory('web', 'landing.html')
+
+@app.route('/app')
+def index():
+    return send_from_directory('build/web', 'index.html')
+
+@app.route('/download')
+def download_apk():
+    apk_path = os.path.join(os.path.dirname(__file__), 'web')
+    return send_from_directory(apk_path, 'app-release.apk',
+                               as_attachment=True,
+                               download_name='ExpensePro.apk')
+
+@app.route('/<path:path>')
+def static_files(path):
+    # Try web/ folder first
+    web_file = os.path.join('web', path)
+    if os.path.exists(web_file):
+        return send_from_directory('web', path)
+    # Try build/web/ for Flutter assets
+    build_file = os.path.join('build/web', path)
+    if os.path.exists(build_file):
+        return send_from_directory('build/web', path)
+    # Fallback to Flutter app
+    return send_from_directory('build/web', 'index.html')
+
+if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
-    
-    with socketserver.TCPServer(("", port), ExpenseTrackerHandler) as httpd:
-        print(f"Expense Tracker PWA Server running on port {port}")
-        print(f"Root URL: http://localhost:{port}/")
-        print(f"App URL: http://localhost:{port}/app")
-        httpd.serve_forever()
+    print(f'ExpensePro server running on port {port}')
+    app.run(host='0.0.0.0', port=port)
