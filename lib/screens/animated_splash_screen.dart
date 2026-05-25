@@ -193,8 +193,8 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            _colorAnimation.value ?? AppTheme.lightPrimary,
-                            AppTheme.lightSecondary,
+                            _colorAnimation.value ?? AppTheme.primaryBlue,
+                            AppTheme.primaryBlueLight,
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -202,7 +202,7 @@ class _AnimatedSplashScreenState extends State<AnimatedSplashScreen>
                         borderRadius: BorderRadius.circular(35),
                         boxShadow: [
                           BoxShadow(
-                            color: (_colorAnimation.value ?? AppTheme.lightPrimary).withOpacity(0.4),
+                            color: (_colorAnimation.value ?? AppTheme.primaryBlue).withOpacity(0.4),
                             blurRadius: 30,
                             offset: const Offset(0, 15),
                             spreadRadius: 2,
