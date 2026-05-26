@@ -10,6 +10,8 @@ import '../screens/add_expense_screen.dart';
 import '../widgets/transaction_filter_chip.dart';
 import '../widgets/transaction_search_bar.dart';
 import '../services/pdf_service.dart';
+import '../services/pdf_import_service.dart';
+import 'package:file_picker/file_picker.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -107,6 +109,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                     IconButton(
                       icon: const Icon(Icons.filter_list, color: Colors.white),
                       onPressed: _showFilterDialog,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.upload_file, color: Colors.white),
+                      tooltip: 'Import PDF',
+                      onPressed: _importPdf,
                     ),
                     IconButton(
                       icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
@@ -260,6 +267,67 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       return 'Until ${DateFormat('MMM dd').format(end)}';
     }
     return '';
+  }
+
+  Future<void> _importPdf() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+      withData: true,
+    );
+    if (result == null || result.files.single.bytes == null) return;
+
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    List<ParsedTransaction> parsed;
+    try {
+      parsed = await PdfImportService.parsePdf(result.files.single.bytes!);
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to parse PDF: $e'), backgroundColor: AppTheme.lightError),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+    Navigator.of(context).pop(); // close loading
+
+    if (parsed.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No transactions found in this PDF.')),
+      );
+      return;
+    }
+
+    await showDialog(
+      context: context,
+      builder: (context) => _PdfImportPreviewDialog(
+        transactions: parsed,
+        onConfirm: (selected) async {
+          final expenses = PdfImportService.toExpenses(selected);
+          final provider = Provider.of<ExpenseProvider>(context, listen: false);
+          for (final e in expenses) {
+            await provider.addExpense(e);
+          }
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('${expenses.length} transactions imported successfully'),
+                backgroundColor: AppTheme.success,
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
 
   Future<void> _exportPdf() async {
@@ -845,5 +913,125 @@ class _FilterDialogState extends State<_FilterDialog> {
     expenseProvider.setDateRangeFilter(_startDate, _endDate);
     expenseProvider.setIncomeFilter(_isIncome);
     Navigator.of(context).pop();
+  }
+}
+
+// ── PDF Import Preview Dialog ─────────────────────────────────────────────────
+
+class _PdfImportPreviewDialog extends StatefulWidget {
+  final List<ParsedTransaction> transactions;
+  final Future<void> Function(List<ParsedTransaction> selected) onConfirm;
+
+  const _PdfImportPreviewDialog({
+    required this.transactions,
+    required this.onConfirm,
+  });
+
+  @override
+  State<_PdfImportPreviewDialog> createState() => _PdfImportPreviewDialogState();
+}
+
+class _PdfImportPreviewDialogState extends State<_PdfImportPreviewDialog> {
+  late List<bool> _selected;
+  bool _importing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = List.filled(widget.transactions.length, true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedCount = _selected.where((s) => s).length;
+    final fmt = NumberFormat('#,##,##0.00', 'en_IN');
+
+    return AlertDialog(
+      title: Row(
+        children: [
+          const Icon(Icons.upload_file),
+          const SizedBox(width: 8),
+          Text('Import ${widget.transactions.length} Transactions'),
+        ],
+      ),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 400,
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Text('$selectedCount selected',
+                    style: AppTheme.captionStyle),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => setState(() => _selected = List.filled(widget.transactions.length, true)),
+                  child: const Text('All'),
+                ),
+                TextButton(
+                  onPressed: () => setState(() => _selected = List.filled(widget.transactions.length, false)),
+                  child: const Text('None'),
+                ),
+              ],
+            ),
+            const Divider(),
+            Expanded(
+              child: ListView.builder(
+                itemCount: widget.transactions.length,
+                itemBuilder: (context, i) {
+                  final t = widget.transactions[i];
+                  final color = t.isIncome ? AppTheme.success : AppTheme.lightError;
+                  return CheckboxListTile(
+                    value: _selected[i],
+                    onChanged: (v) => setState(() => _selected[i] = v ?? false),
+                    dense: true,
+                    title: Text(
+                      t.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      DateFormat('dd MMM yyyy').format(t.date),
+                      style: AppTheme.captionStyle,
+                    ),
+                    secondary: Text(
+                      '${t.isIncome ? '+' : '-'}${AppConstants.currencySymbol}${fmt.format(t.amount)}',
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _importing ? null : () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _importing || selectedCount == 0
+              ? null
+              : () async {
+                  setState(() => _importing = true);
+                  final selected = [
+                    for (int i = 0; i < widget.transactions.length; i++)
+                      if (_selected[i]) widget.transactions[i]
+                  ];
+                  await widget.onConfirm(selected);
+                  if (mounted) Navigator.of(context).pop();
+                },
+          child: _importing
+              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+              : Text('Import $selectedCount'),
+        ),
+      ],
+    );
   }
 }

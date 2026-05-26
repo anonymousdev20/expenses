@@ -63,10 +63,12 @@ dependencies:
   # Date & Time
   date_time_picker: ^2.1.0
 
-  # PDF Export
+  # PDF Export & Import
   pdf: ^3.10.8
   printing: ^5.12.0
   path_provider: ^2.1.3
+  file_picker: ^8.1.2
+  syncfusion_flutter_pdf: ^27.1.48
 
 dev_dependencies:
   flutter_test:
