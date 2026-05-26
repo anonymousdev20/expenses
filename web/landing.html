@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ExpensePro Manage – Track Your Expenses</title>
+  <title>ExpensePro — Track Your Expenses</title>
   <link rel="icon" href="favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -18,7 +18,6 @@
       --text:    #E4E6EB;
       --gray:    #B0B3B8;
       --green:   #42B883;
-      --red:     #FF4444;
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,26 +30,21 @@
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
       padding: 14px 40px;
-      background: rgba(24,25,26,.9);
+      background: rgba(24,25,26,.92);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
     }
     .nav-brand { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; }
     .nav-brand i { color: var(--blue); }
-    .nav-cta { display: flex; gap: 10px; }
 
     .btn {
       display: inline-flex; align-items: center; gap: 8px;
-      padding: 9px 20px; border-radius: 8px; font-size: 14px;
+      padding: 10px 22px; border-radius: 8px; font-size: 14px;
       font-weight: 600; cursor: pointer; border: none; transition: all .2s;
     }
-    .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
-    .btn-ghost:hover { background: var(--border); }
-    .btn-primary { background: var(--blue); color: #fff; }
-    .btn-primary:hover { background: var(--blue-dk); }
-    .btn-green { background: var(--green); color: #fff; }
-    .btn-green:hover { background: #38a374; }
-    .btn-lg { padding: 13px 28px; font-size: 15px; border-radius: 10px; }
+    .btn-green  { background: var(--green); color: #fff; }
+    .btn-green:hover  { background: #38a374; transform: translateY(-1px); }
+    .btn-lg { padding: 14px 30px; font-size: 15px; border-radius: 10px; }
 
     /* HERO */
     .hero {
@@ -58,9 +52,9 @@
       display: flex; align-items: center; justify-content: center;
       text-align: center;
       padding: 120px 24px 80px;
-      background: radial-gradient(ellipse 80% 55% at 50% 0%, rgba(24,119,242,.16) 0%, transparent 70%);
+      background: radial-gradient(ellipse 80% 55% at 50% 0%, rgba(24,119,242,.14) 0%, transparent 70%);
     }
-    .hero-inner { max-width: 700px; }
+    .hero-inner { max-width: 680px; }
 
     .hero-badge {
       display: inline-flex; align-items: center; gap: 8px;
@@ -70,110 +64,49 @@
     }
 
     .hero h1 {
-      font-size: clamp(34px, 6vw, 60px); font-weight: 800;
+      font-size: clamp(36px, 6vw, 62px); font-weight: 800;
       line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 18px;
     }
     .hero h1 span { color: var(--blue); }
-    .hero p { font-size: 17px; color: var(--gray); max-width: 520px; margin: 0 auto 40px; }
-
-    .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-
-    /* DOWNLOAD SECTION */
-    .download {
-      background: var(--card);
-      padding: 72px 24px;
-      text-align: center;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    .download h2 { font-size: clamp(24px, 4vw, 36px); font-weight: 800; margin-bottom: 12px; }
-    .download p { font-size: 15px; color: var(--gray); margin-bottom: 36px; }
-
-    .download-cards {
-      display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;
-      max-width: 700px; margin: 0 auto;
-    }
-    .dl-card {
-      flex: 1; min-width: 260px; max-width: 320px;
-      background: var(--dark); border: 1px solid var(--border);
-      border-radius: 16px; padding: 28px 24px;
-      display: flex; flex-direction: column; align-items: center; gap: 14px;
-      transition: border-color .25s, transform .25s;
-    }
-    .dl-card:hover { border-color: var(--blue); transform: translateY(-4px); }
-    .dl-icon {
-      width: 56px; height: 56px; border-radius: 16px;
-      display: flex; align-items: center; justify-content: center; font-size: 24px;
-    }
-    .dl-card h3 { font-size: 16px; font-weight: 700; }
-    .dl-card p { font-size: 13px; color: var(--gray); text-align: center; }
+    .hero p { font-size: 17px; color: var(--gray); max-width: 500px; margin: 0 auto 40px; }
 
     /* FEATURES */
     .features { padding: 80px 24px; }
     .features-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 20px; max-width: 1000px; margin: 32px auto 0;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px; max-width: 960px; margin: 36px auto 0;
     }
     .feature-card {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 14px; padding: 24px;
       display: flex; gap: 16px; align-items: flex-start;
     }
-    .feature-card .fi {
+    .fi {
       width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center; font-size: 18px;
     }
     .feature-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
     .feature-card p  { font-size: 13px; color: var(--gray); line-height: 1.6; }
 
-    /* MOCK DASHBOARD */
-    .preview {
+    /* SECTION HEADING */
+    .sh { text-align: center; }
+    .sh .lbl { font-size: 12px; font-weight: 600; color: var(--blue); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+    .sh h2 { font-size: clamp(26px, 4vw, 38px); font-weight: 800; }
+
+    /* DOWNLOAD CTA */
+    .cta {
+      padding: 80px 24px; text-align: center;
       background: var(--card);
-      padding: 80px 24px;
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
     }
-    .preview-inner {
-      max-width: 1000px; margin: 0 auto;
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 48px; align-items: center;
-    }
-    .preview-text h2 { font-size: clamp(24px, 3vw, 36px); font-weight: 800; margin-bottom: 12px; }
-    .preview-text p  { font-size: 15px; color: var(--gray); margin-bottom: 24px; }
-    .check-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
-    .check-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--gray); }
-    .check-list li i { color: var(--green); margin-top: 3px; flex-shrink: 0; }
-
-    .mock {
-      background: var(--dark); border: 1px solid var(--border);
-      border-radius: 18px; padding: 20px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.5);
-    }
-    .mock-hdr { display: flex; justify-content: space-between; margin-bottom: 16px; }
-    .mock-hdr span { font-size: 14px; font-weight: 700; }
-    .mock-hdr small { font-size: 12px; color: var(--blue); }
-    .mock-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-    .mc { background: var(--card); border-radius: 10px; padding: 12px; border: 1px solid var(--border); }
-    .mc .lbl { font-size: 10px; color: var(--gray); margin-bottom: 4px; }
-    .mc .val { font-size: 16px; font-weight: 700; }
-    .mc .val.g { color: var(--green); } .mc .val.r { color: var(--red); } .mc .val.b { color: var(--blue); }
-    .mock-bars { display: flex; flex-direction: column; gap: 9px; }
-    .mbr { display: flex; align-items: center; gap: 8px; }
-    .mbr span { font-size: 11px; color: var(--gray); width: 72px; flex-shrink: 0; }
-    .mbt { flex: 1; height: 7px; background: var(--border); border-radius: 4px; overflow: hidden; }
-    .mbf { height: 100%; border-radius: 4px; }
-    .mbr .pct { font-size: 11px; color: var(--gray); width: 30px; text-align: right; }
-
-    /* CTA */
-    .cta { padding: 80px 24px; text-align: center; }
     .cta h2 { font-size: clamp(26px, 4vw, 40px); font-weight: 800; margin-bottom: 12px; }
     .cta p  { font-size: 16px; color: var(--gray); margin-bottom: 32px; }
-    .cta-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 
     /* FOOTER */
     footer {
       background: var(--card); border-top: 1px solid var(--border);
-      padding: 32px 40px;
+      padding: 28px 40px;
       display: flex; justify-content: space-between; align-items: center;
       flex-wrap: wrap; gap: 16px;
     }
@@ -181,17 +114,6 @@
     footer .brand i { color: var(--blue); }
     footer span { font-size: 13px; color: var(--gray); }
 
-    /* SECTION HEADING */
-    .sh { text-align: center; }
-    .sh .lbl { font-size: 12px; font-weight: 600; color: var(--blue); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
-    .sh h2 { font-size: clamp(26px, 4vw, 38px); font-weight: 800; }
-
-    /* RESPONSIVE */
-    @media (max-width: 860px) {
-      nav { padding: 14px 20px; }
-      .preview-inner { grid-template-columns: 1fr; }
-      .mock-cards { grid-template-columns: 1fr 1fr; }
-    }
     @media (max-width: 560px) {
       nav { padding: 12px 16px; }
       .hero { padding: 100px 16px 60px; }
@@ -204,12 +126,11 @@
   <!-- NAV -->
   <nav>
     <div class="nav-brand">
-      <i class="fa-solid fa-wallet"></i> ExpensePro Manage
+      <i class="fa-solid fa-wallet"></i> ExpensePro
     </div>
-    <div class="nav-cta">
-      <a href="index.html"><button class="btn btn-ghost">Log In</button></a>
-      <a href="index.html"><button class="btn btn-primary">Open App</button></a>
-    </div>
+    <a href="/download">
+      <button class="btn btn-green"><i class="fa-brands fa-android"></i> Download APK</button>
+    </a>
   </nav>
 
   <!-- HERO -->
@@ -217,55 +138,15 @@
     <div class="hero-inner">
       <div class="hero-badge"><i class="fa-solid fa-bolt"></i> Smart expense tracking, simplified</div>
       <h1>Take Control of<br /><span>Your Finances</span></h1>
-      <p>Track every rupee, set budgets, and get insights that help you spend smarter — available on web and Android.</p>
-      <div class="hero-actions">
-        <a href="index.html">
-          <button class="btn btn-primary btn-lg"><i class="fa-solid fa-globe"></i> Open Web App</button>
-        </a>
-        <a href="/download">
-          <button class="btn btn-green btn-lg"><i class="fa-brands fa-android"></i> Download APK</button>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- DOWNLOAD -->
-  <section class="download" id="download">
-    <h2>Available on all platforms</h2>
-    <p>Use it in your browser or install the Android app — same data, same experience.</p>
-    <div class="download-cards">
-
-      <div class="dl-card">
-        <div class="dl-icon" style="background:rgba(24,119,242,.12)">
-          <i class="fa-solid fa-globe" style="color:#1877F2"></i>
-        </div>
-        <h3>Web App (PWA)</h3>
-        <p>Works in any browser. Install it on your home screen for an app-like experience — no store needed.</p>
-        <a href="index.html" style="width:100%">
-          <button class="btn btn-primary" style="width:100%;justify-content:center">
-            <i class="fa-solid fa-arrow-right"></i> Open Web App
-          </button>
-        </a>
-      </div>
-
-      <div class="dl-card">
-        <div class="dl-icon" style="background:rgba(66,184,131,.12)">
-          <i class="fa-brands fa-android" style="color:#42B883"></i>
-        </div>
-        <h3>Android App</h3>
-        <p>Download the Flutter-built APK directly. Works offline, fast, and native on your Android device.</p>
-        <a href="/download" style="width:100%">
-          <button class="btn btn-green" style="width:100%;justify-content:center">
-            <i class="fa-solid fa-download"></i> Download APK
-          </button>
-        </a>
-      </div>
-
+      <p>Track every rupee, set budgets, and get insights that help you spend smarter — available on Android.</p>
+      <a href="/download">
+        <button class="btn btn-green btn-lg"><i class="fa-brands fa-android"></i> Download for Android</button>
+      </a>
     </div>
   </section>
 
   <!-- FEATURES -->
-  <section class="features" id="features">
+  <section class="features">
     <div class="sh">
       <div class="lbl">Features</div>
       <h2>Everything you need</h2>
@@ -284,63 +165,33 @@
         <div><h3>Custom Categories</h3><p>Create categories with icons and colors to match your lifestyle.</p></div>
       </div>
       <div class="feature-card">
-        <div class="fi" style="background:rgba(24,119,242,.12)"><i class="fa-solid fa-mobile-screen" style="color:#1877F2"></i></div>
-        <div><h3>Works Offline</h3><p>PWA + Android app — use it anywhere, even without internet.</p></div>
+        <div class="fi" style="background:rgba(24,119,242,.12)"><i class="fa-solid fa-wifi-slash" style="color:#1877F2"></i></div>
+        <div><h3>Works Offline</h3><p>All data stored locally on your device — no internet needed.</p></div>
+      </div>
+      <div class="feature-card">
+        <div class="fi" style="background:rgba(255,68,68,.12)"><i class="fa-solid fa-file-pdf" style="color:#FF4444"></i></div>
+        <div><h3>PDF Import & Export</h3><p>Import bank statements and export reports as PDF with one tap.</p></div>
+      </div>
+      <div class="feature-card">
+        <div class="fi" style="background:rgba(66,184,131,.12)"><i class="fa-solid fa-indian-rupee-sign" style="color:#42B883"></i></div>
+        <div><h3>INR First</h3><p>Built for India — rupee formatting, Indian number system throughout.</p></div>
       </div>
     </div>
   </section>
 
-  <!-- PREVIEW -->
-  <section class="preview">
-    <div class="preview-inner">
-      <div class="preview-text">
-        <h2>Your finances at a glance</h2>
-        <p>A clean dashboard showing income, expenses, and savings — updated the moment you add a transaction.</p>
-        <ul class="check-list">
-          <li><i class="fa-solid fa-circle-check"></i> Real-time balance summary</li>
-          <li><i class="fa-solid fa-circle-check"></i> Category-wise breakdown</li>
-          <li><i class="fa-solid fa-circle-check"></i> Budget progress with alerts</li>
-          <li><i class="fa-solid fa-circle-check"></i> Search & filter transactions</li>
-        </ul>
-      </div>
-      <div class="mock">
-        <div class="mock-hdr">
-          <span>📊 Dashboard</span><small>June 2025</small>
-        </div>
-        <div class="mock-cards">
-          <div class="mc"><div class="lbl">Balance</div><div class="val b">₹24,500</div></div>
-          <div class="mc"><div class="lbl">Income</div><div class="val g">₹60,000</div></div>
-          <div class="mc"><div class="lbl">Expenses</div><div class="val r">₹35,500</div></div>
-        </div>
-        <div style="font-size:12px;font-weight:600;margin-bottom:10px">Spending by Category</div>
-        <div class="mock-bars">
-          <div class="mbr"><span>🍔 Food</span><div class="mbt"><div class="mbf" style="width:72%;background:#1877F2"></div></div><span class="pct">72%</span></div>
-          <div class="mbr"><span>🚗 Travel</span><div class="mbt"><div class="mbf" style="width:45%;background:#42B883"></div></div><span class="pct">45%</span></div>
-          <div class="mbr"><span>🛍 Shopping</span><div class="mbt"><div class="mbf" style="width:88%;background:#FF4444"></div></div><span class="pct">88%</span></div>
-          <div class="mbr"><span>💡 Bills</span><div class="mbt"><div class="mbf" style="width:30%;background:#FFD600"></div></div><span class="pct">30%</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA -->
+  <!-- DOWNLOAD CTA -->
   <section class="cta">
-    <h2>Start tracking today</h2>
-    <p>Free forever. No credit card. Works on web and Android.</p>
-    <div class="cta-btns">
-      <a href="index.html">
-        <button class="btn btn-primary btn-lg"><i class="fa-solid fa-globe"></i> Open Web App</button>
-      </a>
-      <a href="/download">
-        <button class="btn btn-green btn-lg"><i class="fa-brands fa-android"></i> Download APK</button>
-      </a>
-    </div>
+    <h2>Download the app today</h2>
+    <p>Free forever. No account needed. Works fully offline on Android.</p>
+    <a href="/download">
+      <button class="btn btn-green btn-lg"><i class="fa-solid fa-download"></i> Download APK</button>
+    </a>
   </section>
 
   <!-- FOOTER -->
   <footer>
-    <div class="brand"><i class="fa-solid fa-wallet"></i> ExpensePro Manage</div>
-    <span>© 2025 ExpensePro Manage. Free to use.</span>
+    <div class="brand"><i class="fa-solid fa-wallet"></i> ExpensePro</div>
+    <span>© 2025 ExpensePro. Free to use.</span>
   </footer>
 
 </body>
