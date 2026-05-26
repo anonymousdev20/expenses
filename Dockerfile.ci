@@ -9,7 +9,7 @@ RUN flutter pub get
 COPY . .
 RUN mkdir -p assets/images assets/icons assets/animations
 
-RUN flutter build web --release --web-renderer canvaskit --no-tree-shake-icons
+RUN flutter build web --release --no-tree-shake-icons
 
 # Stage 2: Serve with Flask
 FROM python:3.11-slim
