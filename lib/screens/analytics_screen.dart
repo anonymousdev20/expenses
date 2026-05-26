@@ -17,8 +17,7 @@ class AnalyticsScreen extends StatefulWidget {
   State<AnalyticsScreen> createState() => _AnalyticsScreenState();
 }
 
-class _AnalyticsScreenState extends State<AnalyticsScreen>
-    with TickerProviderStateMixin {
+class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderStateMixin {
   late TabController _tabController;
   String _selectedPeriod = 'monthly';
   DateTimeRange? _dateRange;
@@ -37,16 +36,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
   }
 
   Future<void> _loadData() async {
-    final expenseProvider = Provider.of<ExpenseProvider>(
-      context,
-      listen: false,
-    );
-    final categoryProvider = Provider.of<CategoryProvider>(
-      context,
-      listen: false,
-    );
-
-    await Future.wait([expenseProvider.refresh(), categoryProvider.refresh()]);
+    final expenseProvider = Provider.of<ExpenseProvider>(context, listen: false);
+    final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
+    
+    await Future.wait([
+      expenseProvider.refresh(),
+      categoryProvider.refresh(),
+    ]);
   }
 
   @override
@@ -77,18 +73,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Analytics',
-                          style: AppTheme.titleStyle.copyWith(
-                            color: Colors.white,
-                            fontSize: 20,
-                          ),
-                        ),
+                        Text('Analytics',
+                            style: AppTheme.titleStyle.copyWith(
+                                color: Colors.white, fontSize: 20)),
                         IconButton(
-                          icon: const Icon(
-                            Icons.date_range,
-                            color: Colors.white,
-                          ),
+                          icon: const Icon(Icons.date_range, color: Colors.white),
                           onPressed: _selectDateRange,
                         ),
                       ],
@@ -132,21 +121,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     );
   }
 
-  Widget _buildOverviewTab(
-    ExpenseProvider expenseProvider,
-    CategoryProvider categoryProvider,
-  ) {
+  Widget _buildOverviewTab(ExpenseProvider expenseProvider, CategoryProvider categoryProvider) {
     final (startDate, endDate) = _getDateRange();
-    final totalIncome = expenseProvider.getTotalIncome(
-      startDate: startDate,
-      endDate: endDate,
-    );
-    final totalExpenses = expenseProvider.getTotalExpenses(
-      startDate: startDate,
-      endDate: endDate,
-    );
+    final totalIncome = expenseProvider.getTotalIncome(startDate: startDate, endDate: endDate);
+    final totalExpenses = expenseProvider.getTotalExpenses(startDate: startDate, endDate: endDate);
     final balance = totalIncome - totalExpenses;
-
+    
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -154,9 +134,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
         children: [
           // Period Selector
           _buildPeriodSelector(),
-
+          
           const SizedBox(height: 24),
-
+          
           // Summary Cards
           Row(
             children: [
@@ -181,9 +161,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               ),
             ],
           ),
-
+          
           const SizedBox(height: 16),
-
+          
           AnalyticsSummaryCard(
             title: 'Net Balance',
             amount: balance,
@@ -191,25 +171,29 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
             color: balance >= 0 ? AppTheme.success : AppTheme.lightError,
             subtitle: _getPeriodText(),
           ),
-
+          
           const SizedBox(height: 24),
-
+          
           // Income vs Expenses Chart
           AnalyticsChartCard(
-            title: 'Incosme vs Expenses',
+            title: 'Income vs Expenses',
+            icon: Icons.compare_arrows,
+            iconColor: Color(0xFF1877F2),
             child: _buildIncomeVsExpensesChart(totalIncome, totalExpenses),
           ),
-
+          
           const SizedBox(height: 16),
-
+          
           // Daily Spending Trend
           AnalyticsChartCard(
             title: 'Daily Spending Trend',
+            icon: Icons.trending_up,
+            iconColor: Color(0xFF42B883),
             child: _buildDailySpendingChart(expenseProvider),
           ),
-
+          
           const SizedBox(height: 24),
-
+          
           // Top Categories
           Text(
             'Top Spending Categories',
@@ -218,23 +202,17 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
             ),
           ),
           const SizedBox(height: 16),
-
+          
           _buildTopCategoriesChart(expenseProvider, categoryProvider),
         ],
       ),
     );
   }
 
-  Widget _buildCategoriesTab(
-    ExpenseProvider expenseProvider,
-    CategoryProvider categoryProvider,
-  ) {
+  Widget _buildCategoriesTab(ExpenseProvider expenseProvider, CategoryProvider categoryProvider) {
     final (startDate, endDate) = _getDateRange();
-    final expensesByCategory = expenseProvider.getExpensesByCategory(
-      startDate: startDate,
-      endDate: endDate,
-    );
-
+    final expensesByCategory = expenseProvider.getExpensesByCategory(startDate: startDate, endDate: endDate);
+    
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -242,25 +220,29 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
         children: [
           // Period Selector
           _buildPeriodSelector(),
-
+          
           const SizedBox(height: 24),
-
+          
           // Category Breakdown Pie Chart
           AnalyticsChartCard(
             title: 'Category Breakdown',
+            icon: Icons.pie_chart,
+            iconColor: Color(0xFF9B59B6),
             child: _buildCategoryPieChart(expensesByCategory, categoryProvider),
           ),
-
+          
           const SizedBox(height: 16),
-
+          
           // Category Comparison Bar Chart
           AnalyticsChartCard(
             title: 'Category Comparison',
+            icon: Icons.bar_chart,
+            iconColor: Color(0xFFE67E22),
             child: _buildCategoryBarChart(expensesByCategory, categoryProvider),
           ),
-
+          
           const SizedBox(height: 24),
-
+          
           // Category Details List
           Text(
             'Category Details',
@@ -269,7 +251,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
             ),
           ),
           const SizedBox(height: 16),
-
+          
           ...expensesByCategory.entries.map((entry) {
             final category = categoryProvider.getCategoryByName(entry.key);
             return Container(
@@ -285,9 +267,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppTheme.getCategoryColor(
-                        entry.key,
-                      ).withOpacity(0.1),
+                      color: AppTheme.getCategoryColor(entry.key).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -295,9 +275,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                       style: const TextStyle(fontSize: 20),
                     ),
                   ),
-
+                  
                   const SizedBox(width: 12),
-
+                  
                   // Category Info
                   Expanded(
                     child: Column(
@@ -313,28 +293,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                         Text(
                           '${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(entry.value)} (${_getPercentage(entry.value, expensesByCategory.values.fold(0.0, (sum, val) => sum + val)).toStringAsFixed(1)}%)',
                           style: AppTheme.bodyStyle.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withOpacity(0.7),
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                           ),
                         ),
                       ],
                     ),
                   ),
-
+                  
                   // Progress Bar
                   SizedBox(
                     width: 100,
                     child: LinearProgressIndicator(
-                      value:
-                          _getPercentage(
-                            entry.value,
-                            expensesByCategory.values.fold(
-                              0.0,
-                              (sum, val) => sum + val,
-                            ),
-                          ) /
-                          100,
+                      value: _getPercentage(entry.value, expensesByCategory.values.fold(0.0, (sum, val) => sum + val)) / 100,
                       backgroundColor: Theme.of(context).colorScheme.surface,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         AppTheme.getCategoryColor(entry.key),
@@ -350,10 +320,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     );
   }
 
-  Widget _buildTrendsTab(
-    ExpenseProvider expenseProvider,
-    CategoryProvider categoryProvider,
-  ) {
+  Widget _buildTrendsTab(ExpenseProvider expenseProvider, CategoryProvider categoryProvider) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -361,25 +328,29 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
         children: [
           // Period Selector
           _buildPeriodSelector(),
-
+          
           const SizedBox(height: 24),
-
+          
           // Monthly Trend
           AnalyticsChartCard(
             title: 'Monthly Trend',
+            icon: Icons.show_chart,
+            iconColor: Color(0xFF1877F2),
             child: _buildMonthlyTrendChart(expenseProvider),
           ),
-
+          
           const SizedBox(height: 16),
-
+          
           // Year-over-Year Comparison
           AnalyticsChartCard(
             title: 'Year-over-Year Comparison',
+            icon: Icons.calendar_today,
+            iconColor: Color(0xFF42B883),
             child: _buildYearOverYearChart(expenseProvider),
           ),
-
+          
           const SizedBox(height: 24),
-
+          
           // Trend Summary
           Text(
             'Trend Summary',
@@ -388,7 +359,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
             ),
           ),
           const SizedBox(height: 16),
-
+          
           _buildTrendSummary(expenseProvider),
         ],
       ),
@@ -414,17 +385,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: _selectedPeriod == period
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.transparent,
+                  color: _selectedPeriod == period ? Theme.of(context).colorScheme.primary : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   period.capitalize(),
                   textAlign: TextAlign.center,
                   style: AppTheme.subtitleStyle.copyWith(
-                    color: _selectedPeriod == period
-                        ? Theme.of(context).colorScheme.onPrimary
+                    color: _selectedPeriod == period 
+                        ? Theme.of(context).colorScheme.onPrimary 
                         : Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
@@ -446,8 +415,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           maxY: income > expenses ? income * 1.2 : expenses * 1.2,
           barTouchData: BarTouchData(
             touchTooltipData: BarTouchTooltipData(
-              getTooltipColor: (_) =>
-                  Theme.of(context).colorScheme.inverseSurface,
+              getTooltipColor: (_) => Theme.of(context).colorScheme.inverseSurface,
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 final value = rod.toY.round();
                 final label = group.x.toInt() == 0 ? 'Income' : 'Expenses';
@@ -502,9 +470,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   toY: income,
                   color: AppTheme.success,
                   width: 20,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(4),
-                  ),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                 ),
               ],
             ),
@@ -515,9 +481,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   toY: expenses,
                   color: AppTheme.lightError,
                   width: 20,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(4),
-                  ),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                 ),
               ],
             ),
@@ -529,17 +493,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   Widget _buildDailySpendingChart(ExpenseProvider expenseProvider) {
     final (startDate, endDate) = _getDateRange();
-    final dailyData = _getDailySpendingData(
-      expenseProvider,
-      startDate,
-      endDate,
-    );
-
+    final dailyData = _getDailySpendingData(expenseProvider, startDate, endDate);
+    
     return SizedBox(
       height: 200,
       child: LineChart(
         LineChartData(
-          lineTouchData: LineTouchData(enabled: true),
+          lineTouchData: LineTouchData(
+            enabled: true,
+          ),
           titlesData: FlTitlesData(
             show: true,
             bottomTitles: AxisTitles(
@@ -548,9 +510,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                 getTitlesWidget: (value, meta) {
                   if (value.toInt() >= 0 && value.toInt() < dailyData.length) {
                     return Text(
-                      DateFormat(
-                        'MMM dd',
-                      ).format(dailyData[value.toInt()]['date']),
+                      DateFormat('MMM dd').format(dailyData[value.toInt()]['date']),
                       style: AppTheme.captionStyle.copyWith(
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
@@ -609,20 +569,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     );
   }
 
-  Widget _buildCategoryPieChart(
-    Map<String, double> expensesByCategory,
-    CategoryProvider categoryProvider,
-  ) {
-    final totalExpenses = expensesByCategory.values.fold(
-      0.0,
-      (sum, val) => sum + val,
-    );
-
+  Widget _buildCategoryPieChart(Map<String, double> expensesByCategory, CategoryProvider categoryProvider) {
+    final totalExpenses = expensesByCategory.values.fold(0.0, (sum, val) => sum + val);
+    
     return SizedBox(
       height: 250,
       child: PieChart(
         PieChartData(
-          pieTouchData: PieTouchData(enabled: true),
+          pieTouchData: PieTouchData(
+            enabled: true,
+          ),
           sectionsSpace: 2,
           centerSpaceRadius: 60,
           sections: expensesByCategory.entries.map((entry) {
@@ -630,8 +586,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
             return PieChartSectionData(
               color: color,
               value: entry.value,
-              title:
-                  '${(entry.value / totalExpenses * 100).toStringAsFixed(0)}%',
+              title: '${(entry.value / totalExpenses * 100).toStringAsFixed(0)}%',
               radius: 50,
               titleStyle: AppTheme.captionStyle.copyWith(
                 color: Colors.white,
@@ -644,26 +599,20 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     );
   }
 
-  Widget _buildCategoryBarChart(
-    Map<String, double> expensesByCategory,
-    CategoryProvider categoryProvider,
-  ) {
+  Widget _buildCategoryBarChart(Map<String, double> expensesByCategory, CategoryProvider categoryProvider) {
     return SizedBox(
       height: 250,
       child: BarChart(
         BarChartData(
           alignment: BarChartAlignment.spaceAround,
-          maxY: expensesByCategory.values.isNotEmpty
+          maxY: expensesByCategory.values.isNotEmpty 
               ? expensesByCategory.values.reduce((a, b) => a > b ? a : b) * 1.2
               : 100,
           barTouchData: BarTouchData(
             touchTooltipData: BarTouchTooltipData(
-              getTooltipColor: (_) =>
-                  Theme.of(context).colorScheme.inverseSurface,
+              getTooltipColor: (_) => Theme.of(context).colorScheme.inverseSurface,
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                final category = expensesByCategory.keys.elementAt(
-                  group.x.toInt(),
-                );
+                final category = expensesByCategory.keys.elementAt(group.x.toInt());
                 final amount = expensesByCategory[category]!;
                 return BarTooltipItem(
                   '$category\n${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(amount)}',
@@ -681,8 +630,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
-                  if (value.toInt() >= 0 &&
-                      value.toInt() < expensesByCategory.keys.length) {
+                  if (value.toInt() >= 0 && value.toInt() < expensesByCategory.keys.length) {
                     return Padding(
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
@@ -723,9 +671,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   toY: entry.value,
                   color: AppTheme.getCategoryColor(entry.key),
                   width: 20,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(4),
-                  ),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                 ),
               ],
             );
@@ -735,19 +681,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     );
   }
 
-  Widget _buildTopCategoriesChart(
-    ExpenseProvider expenseProvider,
-    CategoryProvider categoryProvider,
-  ) {
+  Widget _buildTopCategoriesChart(ExpenseProvider expenseProvider, CategoryProvider categoryProvider) {
     final (startDate, endDate) = _getDateRange();
-    final expensesByCategory = expenseProvider.getExpensesByCategory(
-      startDate: startDate,
-      endDate: endDate,
-    );
+    final expensesByCategory = expenseProvider.getExpensesByCategory(startDate: startDate, endDate: endDate);
     final sortedCategories = expensesByCategory.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final topCategories = sortedCategories.take(5).toList();
-
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -759,7 +699,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
           final index = entry.key;
           final categoryData = entry.value;
           final category = categoryProvider.getCategoryByName(categoryData.key);
-
+          
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Row(
@@ -782,16 +722,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                     ),
                   ),
                 ),
-
+                
                 const SizedBox(width: 12),
-
+                
                 // Category Icon
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: AppTheme.getCategoryColor(
-                      categoryData.key,
-                    ).withOpacity(0.1),
+                    color: AppTheme.getCategoryColor(categoryData.key).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -799,9 +737,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                     style: const TextStyle(fontSize: 16),
                   ),
                 ),
-
+                
                 const SizedBox(width: 12),
-
+                
                 // Category Name and Amount
                 Expanded(
                   child: Column(
@@ -817,9 +755,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                       Text(
                         '${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(categoryData.value)}',
                         style: AppTheme.bodyStyle.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.7),
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                         ),
                       ),
                     ],
@@ -835,24 +771,23 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   Widget _buildMonthlyTrendChart(ExpenseProvider expenseProvider) {
     final monthlyData = _getMonthlyTrendData(expenseProvider);
-
+    
     return SizedBox(
       height: 250,
       child: LineChart(
         LineChartData(
-          lineTouchData: LineTouchData(enabled: true),
+          lineTouchData: LineTouchData(
+            enabled: true,
+          ),
           titlesData: FlTitlesData(
             show: true,
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
-                  if (value.toInt() >= 0 &&
-                      value.toInt() < monthlyData.length) {
+                  if (value.toInt() >= 0 && value.toInt() < monthlyData.length) {
                     return Text(
-                      DateFormat(
-                        'MMM',
-                      ).format(monthlyData[value.toInt()]['month']),
+                      DateFormat('MMM').format(monthlyData[value.toInt()]['month']),
                       style: AppTheme.captionStyle.copyWith(
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
@@ -913,22 +848,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   Widget _buildYearOverYearChart(ExpenseProvider expenseProvider) {
     final yearlyData = _getYearlyTrendData(expenseProvider);
-
+    
     return SizedBox(
       height: 250,
       child: BarChart(
         BarChartData(
           alignment: BarChartAlignment.spaceAround,
-          maxY: yearlyData.isNotEmpty
-              ? yearlyData
-                        .map((data) => data['amount'])
-                        .reduce((a, b) => a > b ? a : b) *
-                    1.2
+          maxY: yearlyData.isNotEmpty 
+              ? yearlyData.map((data) => data['amount']).reduce((a, b) => a > b ? a : b) * 1.2
               : 100,
           barTouchData: BarTouchData(
             touchTooltipData: BarTouchTooltipData(
-              getTooltipColor: (_) =>
-                  Theme.of(context).colorScheme.inverseSurface,
+              getTooltipColor: (_) => Theme.of(context).colorScheme.inverseSurface,
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 final year = yearlyData[group.x.toInt()]['year'];
                 final amount = yearlyData[group.x.toInt()]['amount'];
@@ -986,9 +917,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                   toY: entry.value['amount'],
                   color: Theme.of(context).colorScheme.primary,
                   width: 20,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(4),
-                  ),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                 ),
               ],
             );
@@ -1019,14 +948,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     final lastMonth = monthlyData.last['amount'];
     final previousMonth = monthlyData[monthlyData.length - 2]['amount'];
     final change = lastMonth - previousMonth;
-    final changePercentage = previousMonth != 0
-        ? (change / previousMonth * 100)
-        : 0;
-
-    final averageMonthlySpending =
-        monthlyData.map((data) => data['amount']).reduce((a, b) => a + b) /
-        monthlyData.length;
-
+    final changePercentage = previousMonth != 0 ? (change / previousMonth * 100) : 0;
+    
+    final averageMonthlySpending = monthlyData.map((data) => data['amount']).reduce((a, b) => a + b) / monthlyData.length;
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1064,16 +989,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
               Text(
                 '(${changePercentage >= 0 ? '+' : ''}${changePercentage.toStringAsFixed(1)}%)',
                 style: AppTheme.bodyStyle.copyWith(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
             ],
           ),
-
+          
           const SizedBox(height: 16),
-
+          
           Row(
             children: [
               Icon(
@@ -1109,7 +1032,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
       lastDate: DateTime.now(),
       initialDateRange: _dateRange,
     );
-
+    
     if (picked != null) {
       setState(() {
         _dateRange = picked;
@@ -1121,7 +1044,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     if (_dateRange != null) {
       return (_dateRange!.start, _dateRange!.end);
     }
-
+    
     final now = DateTime.now();
     switch (_selectedPeriod) {
       case 'weekly':
@@ -1148,81 +1071,74 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     }
   }
 
-  List<Map<String, dynamic>> _getDailySpendingData(
-    ExpenseProvider expenseProvider,
-    DateTime startDate,
-    DateTime endDate,
-  ) {
+  List<Map<String, dynamic>> _getDailySpendingData(ExpenseProvider expenseProvider, DateTime startDate, DateTime endDate) {
     final expenses = expenseProvider.expenses.where((expense) {
-      return !expense.isIncome &&
-          expense.date.isAfter(startDate.subtract(const Duration(days: 1))) &&
-          expense.date.isBefore(endDate.add(const Duration(days: 1)));
+      return !expense.isIncome && 
+             expense.date.isAfter(startDate.subtract(const Duration(days: 1))) &&
+             expense.date.isBefore(endDate.add(const Duration(days: 1)));
     }).toList();
-
+    
     final Map<String, double> dailyExpenses = {};
     for (final expense in expenses) {
       final dateKey = DateFormat('yyyy-MM-dd').format(expense.date);
       dailyExpenses[dateKey] = (dailyExpenses[dateKey] ?? 0) + expense.amount;
     }
-
+    
     final dailyData = <Map<String, dynamic>>[];
     var current = startDate;
     while (current.isBefore(endDate.add(const Duration(days: 1)))) {
       final dateKey = DateFormat('yyyy-MM-dd').format(current);
-      dailyData.add({'date': current, 'amount': dailyExpenses[dateKey] ?? 0.0});
+      dailyData.add({
+        'date': current,
+        'amount': dailyExpenses[dateKey] ?? 0.0,
+      });
       current = current.add(const Duration(days: 1));
     }
-
+    
     return dailyData;
   }
 
-  List<Map<String, dynamic>> _getMonthlyTrendData(
-    ExpenseProvider expenseProvider,
-  ) {
-    final expenses = expenseProvider.expenses
-        .where((expense) => !expense.isIncome)
-        .toList();
+  List<Map<String, dynamic>> _getMonthlyTrendData(ExpenseProvider expenseProvider) {
+    final expenses = expenseProvider.expenses.where((expense) => !expense.isIncome).toList();
     final Map<String, double> monthlyExpenses = {};
-
+    
     for (final expense in expenses) {
       final monthKey = DateFormat('yyyy-MM').format(expense.date);
-      monthlyExpenses[monthKey] =
-          (monthlyExpenses[monthKey] ?? 0) + expense.amount;
+      monthlyExpenses[monthKey] = (monthlyExpenses[monthKey] ?? 0) + expense.amount;
     }
-
+    
     final sortedMonths = monthlyExpenses.keys.toList()..sort();
     final monthlyData = <Map<String, dynamic>>[];
-
+    
     for (final monthKey in sortedMonths) {
       monthlyData.add({
         'month': DateFormat('yyyy-MM').parse(monthKey),
         'amount': monthlyExpenses[monthKey]!,
       });
     }
-
+    
     return monthlyData;
   }
 
-  List<Map<String, dynamic>> _getYearlyTrendData(
-    ExpenseProvider expenseProvider,
-  ) {
-    final expenses = expenseProvider.expenses
-        .where((expense) => !expense.isIncome)
-        .toList();
+  List<Map<String, dynamic>> _getYearlyTrendData(ExpenseProvider expenseProvider) {
+    final expenses = expenseProvider.expenses.where((expense) => !expense.isIncome).toList();
     final Map<int, double> yearlyExpenses = {};
-
+    
     for (final expense in expenses) {
       final year = expense.date.year;
       yearlyExpenses[year] = (yearlyExpenses[year] ?? 0) + expense.amount;
     }
-
+    
     final sortedYears = yearlyExpenses.keys.toList()..sort();
     final yearlyData = <Map<String, dynamic>>[];
-
+    
     for (final year in sortedYears) {
-      yearlyData.add({'year': year, 'amount': yearlyExpenses[year]!});
+      yearlyData.add({
+        'year': year,
+        'amount': yearlyExpenses[year]!,
+      });
     }
-
+    
     return yearlyData;
   }
 
@@ -1235,7 +1151,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
     if (_dateRange != null) {
       return '${DateFormat('MMM dd').format(_dateRange!.start)} - ${DateFormat('MMM dd').format(_dateRange!.end)}';
     }
-
+    
     switch (_selectedPeriod) {
       case 'weekly':
         return 'This week';

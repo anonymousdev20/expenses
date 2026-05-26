@@ -188,7 +188,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with TickerProviderStateM
                 Expanded(
                   child: _buildOverviewCard(
                     'Total Budget',
-                    '\$${budgetProvider.totalBudgetAmount.toStringAsFixed(0)}',
+                    '${AppConstants.currencySymbol}${NumberFormat('#,##,##0', 'en_IN').format(budgetProvider.totalBudgetAmount)}',
                     Icons.account_balance,
                     AppTheme.info,
                   ),
@@ -197,7 +197,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with TickerProviderStateM
                 Expanded(
                   child: _buildOverviewCard(
                     'Total Spent',
-                    '\$${budgetProvider.totalSpentAmount.toStringAsFixed(0)}',
+                    '${AppConstants.currencySymbol}${NumberFormat('#,##,##0', 'en_IN').format(budgetProvider.totalSpentAmount)}',
                     Icons.money_off,
                     AppTheme.lightError,
                   ),
@@ -212,7 +212,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with TickerProviderStateM
                 Expanded(
                   child: _buildOverviewCard(
                     'Remaining',
-                    '\$${(budgetProvider.totalBudgetAmount - budgetProvider.totalSpentAmount).toStringAsFixed(0)}',
+                    '${AppConstants.currencySymbol}${NumberFormat('#,##,##0', 'en_IN').format(budgetProvider.totalBudgetAmount - budgetProvider.totalSpentAmount)}',
                     Icons.savings,
                     AppTheme.success,
                   ),
@@ -266,7 +266,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with TickerProviderStateM
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 4),
                         child: Text(
-                          '${category?.name ?? 'Unknown'}: Over budget by \$${budget.overBudgetAmount.toStringAsFixed(2)}',
+                          '${category?.name ?? 'Unknown'}: Over budget by ${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(budget.overBudgetAmount)}',
                           style: AppTheme.bodyStyle.copyWith(
                             color: AppTheme.lightError,
                           ),
@@ -453,7 +453,7 @@ class _BudgetsScreenState extends State<BudgetsScreen> with TickerProviderStateM
                       ),
                     ),
                     Text(
-                      '\$${budgetProvider.totalSpentAmount.toStringAsFixed(0)}',
+                      '${AppConstants.currencySymbol}${NumberFormat('#,##,##0', 'en_IN').format(budgetProvider.totalSpentAmount)}',
                       style: AppTheme.titleStyle.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
