@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../constants/app_theme.dart';
+import '../constants/app_constants.dart';
 
 class AnalyticsSummaryCard extends StatelessWidget {
   final String title;
@@ -59,10 +60,7 @@ class AnalyticsSummaryCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              NumberFormat.currency(
-                symbol: '\$',
-                decimalDigits: 2,
-              ).format(amount),
+              '${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(amount)}',
               style: AppTheme.titleStyle.copyWith(
                 color: color,
                 fontWeight: FontWeight.bold,

@@ -283,7 +283,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${AppConstants.currencySymbol}${entry.value.toStringAsFixed(2)} (${_getPercentage(entry.value, expensesByCategory.values.fold(0.0, (sum, val) => sum + val)).toStringAsFixed(1)}%)',
+                          '${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(entry.value)} (${_getPercentage(entry.value, expensesByCategory.values.fold(0.0, (sum, val) => sum + val)).toStringAsFixed(1)}%)',
                           style: AppTheme.bodyStyle.copyWith(
                             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                           ),
@@ -408,7 +408,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                 final value = rod.toY.round();
                 final label = group.x.toInt() == 0 ? 'Income' : 'Expenses';
                 return BarTooltipItem(
-                  '$label: ${AppConstants.currencySymbol}${value.toString()}',
+                  '$label: ${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(rod.toY)}',
                   TextStyle(
                     color: Theme.of(context).colorScheme.onInverseSurface,
                     fontWeight: FontWeight.bold,
@@ -603,7 +603,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                 final category = expensesByCategory.keys.elementAt(group.x.toInt());
                 final amount = expensesByCategory[category]!;
                 return BarTooltipItem(
-                  '$category\n${AppConstants.currencySymbol}${amount.toStringAsFixed(2)}',
+                  '$category\n${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(amount)}',
                   TextStyle(
                     color: Theme.of(context).colorScheme.onInverseSurface,
                     fontWeight: FontWeight.bold,
@@ -741,7 +741,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${AppConstants.currencySymbol}${categoryData.value.toStringAsFixed(2)}',
+                        '${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(categoryData.value)}',
                         style: AppTheme.bodyStyle.copyWith(
                           color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                         ),
@@ -852,7 +852,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                 final year = yearlyData[group.x.toInt()]['year'];
                 final amount = yearlyData[group.x.toInt()]['amount'];
                 return BarTooltipItem(
-                  '$year\n${AppConstants.currencySymbol}${amount.toStringAsFixed(2)}',
+                  '$year\n${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(amount)}',
                   TextStyle(
                     color: Theme.of(context).colorScheme.onInverseSurface,
                     fontWeight: FontWeight.bold,
@@ -968,7 +968,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
           Row(
             children: [
               Text(
-                '${change >= 0 ? '+' : ''}${AppConstants.currencySymbol}${change.abs().toStringAsFixed(2)}',
+                '${change >= 0 ? '+' : ''}${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(change.abs())}',
                 style: AppTheme.titleStyle.copyWith(
                   color: change >= 0 ? AppTheme.lightError : AppTheme.success,
                 ),
@@ -1003,7 +1003,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
           ),
           const SizedBox(height: 12),
           Text(
-            '${AppConstants.currencySymbol}${averageMonthlySpending.toStringAsFixed(2)}',
+            '${AppConstants.currencySymbol}${NumberFormat('#,##,##0.00', 'en_IN').format(averageMonthlySpending)}',
             style: AppTheme.titleStyle.copyWith(
               color: Theme.of(context).colorScheme.primary,
             ),
