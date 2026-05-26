@@ -14,7 +14,18 @@ class PdfService {
   }) async {
     final pdf = pw.Document();
     final fmt = NumberFormat('#,##,##0.00', 'en_IN');
-    final sym = AppConstants.currencySymbol;
+    final sym = 'INR'; // Use text instead of ₹ symbol for PDF font compatibility
+
+    // Load a font that supports rupee symbol
+    pw.Font? ttf;
+    try {
+      final fontData = await PdfGoogleFonts.notoSansRegular();
+      ttf = fontData;
+    } catch (_) {
+      ttf = null;
+    }
+    final pw.TextStyle baseStyle = pw.TextStyle(font: ttf, fontSize: 9);
+    final pw.TextStyle boldStyle = pw.TextStyle(font: ttf, fontSize: 9, fontWeight: pw.FontWeight.bold);
 
     final totalIncome = expenses
         .where((e) => e.isIncome)
@@ -47,17 +58,18 @@ class PdfService {
                   children: [
                     pw.Text('ExpensePro',
                         style: pw.TextStyle(
+                            font: ttf,
                             fontSize: 22,
                             fontWeight: pw.FontWeight.bold,
                             color: PdfColors.blue800)),
                     pw.Text(title,
                         style: pw.TextStyle(
-                            fontSize: 13, color: PdfColors.grey700)),
+                            font: ttf, fontSize: 13, color: PdfColors.grey700)),
                   ],
                 ),
                 pw.Text(
                   'Generated: ${DateFormat('dd MMM yyyy').format(DateTime.now())}',
-                  style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+                  style: pw.TextStyle(font: ttf, fontSize: 10, color: PdfColors.grey600),
                 ),
               ],
             ),
@@ -70,15 +82,15 @@ class PdfService {
           pw.Row(
             children: [
               _summaryBox('Total Income', '$sym ${fmt.format(totalIncome)}',
-                  PdfColors.green700),
+                  PdfColors.green700, ttf),
               pw.SizedBox(width: 12),
               _summaryBox('Total Expenses', '$sym ${fmt.format(totalExpense)}',
-                  PdfColors.red700),
+                  PdfColors.red700, ttf),
               pw.SizedBox(width: 12),
               _summaryBox(
                   'Balance',
                   '$sym ${fmt.format(balance.abs())}${balance < 0 ? ' (deficit)' : ''}',
-                  balance >= 0 ? PdfColors.blue800 : PdfColors.orange800),
+                  balance >= 0 ? PdfColors.blue800 : PdfColors.orange800, ttf),
             ],
           ),
 
@@ -88,6 +100,7 @@ class PdfService {
           if (sortedCategories.isNotEmpty) ...[
             pw.Text('Spending by Category',
                 style: pw.TextStyle(
+                    font: ttf,
                     fontSize: 14,
                     fontWeight: pw.FontWeight.bold,
                     color: PdfColors.blue800)),
@@ -103,9 +116,9 @@ class PdfService {
                 pw.TableRow(
                   decoration: const pw.BoxDecoration(color: PdfColors.blue800),
                   children: [
-                    _tableHeader('Category'),
-                    _tableHeader('Amount'),
-                    _tableHeader('% of Total'),
+                    _tableHeader('Category', ttf),
+                    _tableHeader('Amount', ttf),
+                    _tableHeader('% of Total', ttf),
                   ],
                 ),
                 ...sortedCategories.map((entry) {
@@ -113,9 +126,9 @@ class PdfService {
                       ? (entry.value / totalExpense * 100).toStringAsFixed(1)
                       : '0.0';
                   return pw.TableRow(children: [
-                    _tableCell(entry.key),
-                    _tableCell('$sym ${fmt.format(entry.value)}'),
-                    _tableCell('$pct%'),
+                    _tableCell(entry.key, baseStyle),
+                    _tableCell('$sym ${fmt.format(entry.value)}', baseStyle),
+                    _tableCell('$pct%', baseStyle),
                   ]);
                 }),
               ],
@@ -126,6 +139,7 @@ class PdfService {
           // Transactions Table
           pw.Text('All Transactions',
               style: pw.TextStyle(
+                  font: ttf,
                   fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.blue800)),
@@ -143,11 +157,11 @@ class PdfService {
               pw.TableRow(
                 decoration: const pw.BoxDecoration(color: PdfColors.blue800),
                 children: [
-                  _tableHeader('Title'),
-                  _tableHeader('Category'),
-                  _tableHeader('Date'),
-                  _tableHeader('Type'),
-                  _tableHeader('Amount'),
+                  _tableHeader('Title', ttf),
+                  _tableHeader('Category', ttf),
+                  _tableHeader('Date', ttf),
+                  _tableHeader('Type', ttf),
+                  _tableHeader('Amount', ttf),
                 ],
               ),
               ...expenses.map((e) {
@@ -158,15 +172,17 @@ class PdfService {
                         : PdfColors.white,
                   ),
                   children: [
-                    _tableCell(e.title),
-                    _tableCell(e.category),
-                    _tableCell(DateFormat('dd MMM yy').format(e.date)),
+                    _tableCell(e.title, baseStyle),
+                    _tableCell(e.category, baseStyle),
+                    _tableCell(DateFormat('dd MMM yy').format(e.date), baseStyle),
                     _tableCellColored(
                         e.isIncome ? 'Income' : 'Expense',
-                        e.isIncome ? PdfColors.green700 : PdfColors.red700),
+                        e.isIncome ? PdfColors.green700 : PdfColors.red700,
+                        boldStyle),
                     _tableCellColored(
                         '${e.isIncome ? '+' : '-'}$sym ${fmt.format(e.amount)}',
-                        e.isIncome ? PdfColors.green700 : PdfColors.red700),
+                        e.isIncome ? PdfColors.green700 : PdfColors.red700,
+                        boldStyle),
                   ],
                 );
               }),
@@ -177,11 +193,9 @@ class PdfService {
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
             pw.Text('ExpensePro — Expense Report',
-                style:
-                    pw.TextStyle(fontSize: 9, color: PdfColors.grey500)),
+                style: pw.TextStyle(font: ttf, fontSize: 9, color: PdfColors.grey500)),
             pw.Text('Page ${context.pageNumber} of ${context.pagesCount}',
-                style:
-                    pw.TextStyle(fontSize: 9, color: PdfColors.grey500)),
+                style: pw.TextStyle(font: ttf, fontSize: 9, color: PdfColors.grey500)),
           ],
         ),
       ),
@@ -193,7 +207,7 @@ class PdfService {
     );
   }
 
-  static pw.Widget _summaryBox(String label, String value, PdfColor color) {
+  static pw.Widget _summaryBox(String label, String value, PdfColor color, pw.Font? font) {
     return pw.Expanded(
       child: pw.Container(
         padding: const pw.EdgeInsets.all(12),
@@ -205,10 +219,11 @@ class PdfService {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Text(label,
-                style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
+                style: pw.TextStyle(font: font, fontSize: 9, color: PdfColors.grey600)),
             pw.SizedBox(height: 4),
             pw.Text(value,
                 style: pw.TextStyle(
+                    font: font,
                     fontSize: 13,
                     fontWeight: pw.FontWeight.bold,
                     color: color)),
@@ -218,33 +233,30 @@ class PdfService {
     );
   }
 
-  static pw.Widget _tableHeader(String text) {
+  static pw.Widget _tableHeader(String text, pw.Font? font) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(6),
       child: pw.Text(text,
           style: pw.TextStyle(
+              font: font,
               fontSize: 10,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.white)),
     );
   }
 
-  static pw.Widget _tableCell(String text) {
+  static pw.Widget _tableCell(String text, pw.TextStyle style) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(6),
-      child: pw.Text(text,
-          style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
+      child: pw.Text(text, style: style),
     );
   }
 
-  static pw.Widget _tableCellColored(String text, PdfColor color) {
+  static pw.Widget _tableCellColored(String text, PdfColor color, pw.TextStyle baseStyle) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(6),
       child: pw.Text(text,
-          style: pw.TextStyle(
-              fontSize: 9,
-              fontWeight: pw.FontWeight.bold,
-              color: color)),
+          style: baseStyle.copyWith(color: color)),
     );
   }
 }

@@ -50,73 +50,88 @@ class _BudgetsScreenState extends State<BudgetsScreen> with TickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Budgets'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Active Budgets'),
-            Tab(text: 'Budget Analysis'),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _addBudget,
-          ),
-        ],
-      ),
-      body: Consumer3<BudgetProvider, CategoryProvider, ExpenseProvider>(
-        builder: (context, budgetProvider, categoryProvider, expenseProvider, child) {
-          if (budgetProvider.isLoading || categoryProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          if (budgetProvider.error != null) {
-            return Center(
+      backgroundColor: AppTheme.lightBackground,
+      body: Column(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: AppTheme.headerGradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error loading budgets',
-                    style: AppTheme.titleStyle.copyWith(
-                      color: Theme.of(context).colorScheme.error,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Budgets',
+                            style: AppTheme.titleStyle.copyWith(
+                                color: Colors.white, fontSize: 20)),
+                        IconButton(
+                          icon: const Icon(Icons.add, color: Colors.white),
+                          onPressed: _addBudget,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    budgetProvider.error!,
-                    style: AppTheme.bodyStyle.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadData,
-                    child: const Text('Retry'),
+                  TabBar(
+                    controller: _tabController,
+                    indicatorColor: Colors.white,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white60,
+                    tabs: const [
+                      Tab(text: 'Active Budgets'),
+                      Tab(text: 'Budget Analysis'),
+                    ],
                   ),
                 ],
               ),
-            );
-          }
-
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              _buildActiveBudgets(budgetProvider, categoryProvider),
-              _buildBudgetAnalysis(budgetProvider, categoryProvider, expenseProvider),
-            ],
-          );
-        },
+            ),
+          ),
+          Expanded(
+            child: Consumer3<BudgetProvider, CategoryProvider, ExpenseProvider>(
+              builder: (context, budgetProvider, categoryProvider, expenseProvider, child) {
+                if (budgetProvider.isLoading || categoryProvider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (budgetProvider.error != null) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline, size: 64,
+                            color: Theme.of(context).colorScheme.error),
+                        const SizedBox(height: 16),
+                        Text('Error loading budgets',
+                            style: AppTheme.titleStyle.copyWith(
+                                color: Theme.of(context).colorScheme.error)),
+                        const SizedBox(height: 16),
+                        ElevatedButton(onPressed: _loadData, child: const Text('Retry')),
+                      ],
+                    ),
+                  );
+                }
+                return TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildActiveBudgets(budgetProvider, categoryProvider),
+                    _buildBudgetAnalysis(budgetProvider, categoryProvider, expenseProvider),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

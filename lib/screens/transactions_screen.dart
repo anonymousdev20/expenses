@@ -44,126 +44,135 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: _isSearching
-            ? TextField(
-                controller: _searchController,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  hintText: 'Search transactions...',
-                  border: InputBorder.none,
+      backgroundColor: AppTheme.lightBackground,
+      body: Column(
+        children: [
+          // Gradient header
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: AppTheme.headerGradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 8, 16),
+                child: Row(
+                  children: [
+                    _isSearching
+                        ? Expanded(
+                            child: TextField(
+                              controller: _searchController,
+                              autofocus: true,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                hintText: 'Search transactions...',
+                                hintStyle: const TextStyle(color: Colors.white60),
+                                border: InputBorder.none,
+                              ),
+                              onChanged: (value) {
+                                Provider.of<ExpenseProvider>(context, listen: false)
+                                    .setSearchQuery(value);
+                              },
+                            ),
+                          )
+                        : Expanded(
+                            child: Text('Transactions',
+                                style: AppTheme.titleStyle.copyWith(
+                                    color: Colors.white, fontSize: 20)),
+                          ),
+                    IconButton(
+                      icon: Icon(
+                        _isSearching ? Icons.close : Icons.search,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isSearching = !_isSearching;
+                          if (!_isSearching) {
+                            _searchController.clear();
+                            Provider.of<ExpenseProvider>(context, listen: false)
+                                .setSearchQuery('');
+                          }
+                        });
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.filter_list, color: Colors.white),
+                      onPressed: _showFilterDialog,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+                      tooltip: 'Export PDF',
+                      onPressed: _exportPdf,
+                    ),
+                  ],
                 ),
-                onChanged: (value) {
-                  Provider.of<ExpenseProvider>(context, listen: false)
-                      .setSearchQuery(value);
-                },
-              )
-            : const Text('Transactions'),
-        actions: [
-          IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
-            onPressed: () {
-              setState(() {
-                _isSearching = !_isSearching;
-                if (!_isSearching) {
-                  _searchController.clear();
-                  Provider.of<ExpenseProvider>(context, listen: false)
-                      .setSearchQuery('');
+              ),
+            ),
+          ),
+          // Body
+          Expanded(
+            child: Consumer<ExpenseProvider>(
+              builder: (context, expenseProvider, child) {
+                if (expenseProvider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
                 }
-              });
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _showFilterDialog,
-          ),
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
-            tooltip: 'Export PDF',
-            onPressed: _exportPdf,
+                if (expenseProvider.error != null) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline, size: 64,
+                            color: Theme.of(context).colorScheme.error),
+                        const SizedBox(height: 16),
+                        Text('Error loading transactions',
+                            style: AppTheme.titleStyle.copyWith(
+                                color: Theme.of(context).colorScheme.error)),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                            onPressed: _loadTransactions,
+                            child: const Text('Retry')),
+                      ],
+                    ),
+                  );
+                }
+                final transactions = expenseProvider.expenses;
+                if (transactions.isEmpty) return _buildEmptyState();
+                return Column(
+                  children: [
+                    _buildFilterChips(expenseProvider),
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: _loadTransactions,
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(16),
+                          itemCount: transactions.length,
+                          itemBuilder: (context, index) {
+                            final expense = transactions[index];
+                            return _TransactionItem(
+                              expense: expense,
+                              onTap: () => _viewExpense(expense),
+                              onDelete: () => _deleteExpense(expense),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ],
-      ),
-      body: Consumer<ExpenseProvider>(
-        builder: (context, expenseProvider, child) {
-          if (expenseProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          if (expenseProvider.error != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error loading transactions',
-                    style: AppTheme.titleStyle.copyWith(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    expenseProvider.error!,
-                    style: AppTheme.bodyStyle.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadTransactions,
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final transactions = expenseProvider.expenses;
-
-          if (transactions.isEmpty) {
-            return _buildEmptyState();
-          }
-
-          return Column(
-            children: [
-              // Filter Chips
-              _buildFilterChips(expenseProvider),
-              
-              // Transactions List
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: _loadTransactions,
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(16),
-                    itemCount: transactions.length,
-                    itemBuilder: (context, index) {
-                      final expense = transactions[index];
-                      return _TransactionItem(
-                        expense: expense,
-                        onTap: () => _editExpense(expense),
-                        onDelete: () => _deleteExpense(expense),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addExpense,
-        child: const Icon(Icons.add),
       ),
     );
   }
@@ -280,6 +289,27 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const AddExpenseScreen(),
+      ),
+    );
+  }
+
+  void _viewExpense(Expense expense) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _TransactionDetailSheet(
+        expense: expense,
+        onEdit: () {
+          Navigator.of(context).pop();
+          _editExpense(expense);
+        },
+        onDelete: () {
+          Navigator.of(context).pop();
+          _deleteExpense(expense);
+        },
       ),
     );
   }
@@ -447,11 +477,9 @@ class _TransactionItem extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      (expense.isIncome ? '+' : '-') + 
-                      NumberFormat.currency(
-                        symbol: AppConstants.defaultCurrency,
-                        decimalDigits: 2,
-                      ).format(expense.amount),
+                      (expense.isIncome ? '+' : '-') +
+                      AppConstants.currencySymbol +
+                      NumberFormat('#,##,##0.00', 'en_IN').format(expense.amount),
                       style: AppTheme.subtitleStyle.copyWith(
                         color: expense.isIncome ? AppTheme.success : AppTheme.lightError,
                         fontWeight: FontWeight.bold,
@@ -493,6 +521,169 @@ class _TransactionItem extends StatelessWidget {
       'Other Income': '💵',
     };
     return icons[categoryName] ?? '💳';
+  }
+}
+
+class _TransactionDetailSheet extends StatelessWidget {
+  final Expense expense;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _TransactionDetailSheet({
+    required this.expense,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt = NumberFormat('#,##,##0.00', 'en_IN');
+    final color = expense.isIncome ? AppTheme.success : AppTheme.lightError;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.4,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (context, scrollController) => SingleChildScrollView(
+        controller: scrollController,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Amount + type badge
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${expense.isIncome ? '+' : '-'}${AppConstants.currencySymbol}${fmt.format(expense.amount)}',
+                      style: AppTheme.titleStyle.copyWith(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      expense.isIncome ? 'Income' : 'Expense',
+                      style: AppTheme.captionStyle.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                expense.title,
+                style: AppTheme.titleStyle.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Divider(),
+              const SizedBox(height: 12),
+
+              // Details rows
+              _detailRow(context, Icons.category, 'Category', expense.category),
+              _detailRow(context, Icons.calendar_today, 'Date',
+                  DateFormat('dd MMM yyyy, hh:mm a').format(expense.date)),
+              _detailRow(context, Icons.payment, 'Payment Method', expense.paymentMethod),
+              if (expense.notes.isNotEmpty)
+                _detailRow(context, Icons.note, 'Notes', expense.notes),
+              if (expense.location != null && expense.location!.isNotEmpty)
+                _detailRow(context, Icons.location_on, 'Location', expense.location!),
+              if (expense.tags.isNotEmpty)
+                _detailRow(context, Icons.tag, 'Tags', expense.tags.join(', ')),
+              if (expense.isRecurring)
+                _detailRow(context, Icons.repeat, 'Recurring',
+                    expense.recurringPattern ?? 'Yes'),
+
+              const SizedBox(height: 24),
+
+              // Action buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: onDelete,
+                      icon: const Icon(Icons.delete_outline),
+                      label: const Text('Delete'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.lightError,
+                        side: BorderSide(color: AppTheme.lightError),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: onEdit,
+                      icon: const Icon(Icons.edit),
+                      label: const Text('Edit'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _detailRow(BuildContext context, IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18,
+              color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: AppTheme.captionStyle.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                    )),
+                const SizedBox(height: 2),
+                Text(value,
+                    style: AppTheme.bodyStyle.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    )),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

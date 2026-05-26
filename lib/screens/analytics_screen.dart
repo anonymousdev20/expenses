@@ -48,40 +48,75 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Analytics'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Overview'),
-            Tab(text: 'Categories'),
-            Tab(text: 'Trends'),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.date_range),
-            onPressed: _selectDateRange,
+      backgroundColor: AppTheme.lightBackground,
+      body: Column(
+        children: [
+          // Header matching dashboard style
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: AppTheme.headerGradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Analytics',
+                            style: AppTheme.titleStyle.copyWith(
+                                color: Colors.white, fontSize: 20)),
+                        IconButton(
+                          icon: const Icon(Icons.date_range, color: Colors.white),
+                          onPressed: _selectDateRange,
+                        ),
+                      ],
+                    ),
+                  ),
+                  TabBar(
+                    controller: _tabController,
+                    indicatorColor: Colors.white,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white60,
+                    tabs: const [
+                      Tab(text: 'Overview'),
+                      Tab(text: 'Categories'),
+                      Tab(text: 'Trends'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Tab content
+          Expanded(
+            child: Consumer2<ExpenseProvider, CategoryProvider>(
+              builder: (context, expenseProvider, categoryProvider, child) {
+                if (expenseProvider.isLoading || categoryProvider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildOverviewTab(expenseProvider, categoryProvider),
+                    _buildCategoriesTab(expenseProvider, categoryProvider),
+                    _buildTrendsTab(expenseProvider, categoryProvider),
+                  ],
+                );
+              },
+            ),
           ),
         ],
-      ),
-      body: Consumer2<ExpenseProvider, CategoryProvider>(
-        builder: (context, expenseProvider, categoryProvider, child) {
-          if (expenseProvider.isLoading || categoryProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              _buildOverviewTab(expenseProvider, categoryProvider),
-              _buildCategoriesTab(expenseProvider, categoryProvider),
-              _buildTrendsTab(expenseProvider, categoryProvider),
-            ],
-          );
-        },
       ),
     );
   }
@@ -248,7 +283,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${entry.value.toStringAsFixed(2)} (${_getPercentage(entry.value, expensesByCategory.values.fold(0.0, (sum, val) => sum + val)).toStringAsFixed(1)}%)',
+                          '${AppConstants.currencySymbol}${entry.value.toStringAsFixed(2)} (${_getPercentage(entry.value, expensesByCategory.values.fold(0.0, (sum, val) => sum + val)).toStringAsFixed(1)}%)',
                           style: AppTheme.bodyStyle.copyWith(
                             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                           ),
@@ -373,7 +408,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                 final value = rod.toY.round();
                 final label = group.x.toInt() == 0 ? 'Income' : 'Expenses';
                 return BarTooltipItem(
-                  '$label: \$${value.toString()}',
+                  '$label: ${AppConstants.currencySymbol}${value.toString()}',
                   TextStyle(
                     color: Theme.of(context).colorScheme.onInverseSurface,
                     fontWeight: FontWeight.bold,
@@ -403,7 +438,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                 reservedSize: 40,
                 getTitlesWidget: (value, meta) {
                   return Text(
-                    '\$${value.toInt()}',
+                    '${AppConstants.currencySymbol}${value.toInt()}',
                     style: AppTheme.captionStyle.copyWith(
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -479,7 +514,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                 reservedSize: 40,
                 getTitlesWidget: (value, meta) {
                   return Text(
-                    '\$${value.toInt()}',
+                    '${AppConstants.currencySymbol}${value.toInt()}',
                     style: AppTheme.captionStyle.copyWith(
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -568,7 +603,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                 final category = expensesByCategory.keys.elementAt(group.x.toInt());
                 final amount = expensesByCategory[category]!;
                 return BarTooltipItem(
-                  '$category\n\$${amount.toStringAsFixed(2)}',
+                  '$category\n${AppConstants.currencySymbol}${amount.toStringAsFixed(2)}',
                   TextStyle(
                     color: Theme.of(context).colorScheme.onInverseSurface,
                     fontWeight: FontWeight.bold,
@@ -604,7 +639,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                 reservedSize: 40,
                 getTitlesWidget: (value, meta) {
                   return Text(
-                    '\$${value.toInt()}',
+                    '${AppConstants.currencySymbol}${value.toInt()}',
                     style: AppTheme.captionStyle.copyWith(
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -706,7 +741,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '\$${categoryData.value.toStringAsFixed(2)}',
+                        '${AppConstants.currencySymbol}${categoryData.value.toStringAsFixed(2)}',
                         style: AppTheme.bodyStyle.copyWith(
                           color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                         ),
@@ -756,7 +791,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                 reservedSize: 40,
                 getTitlesWidget: (value, meta) {
                   return Text(
-                    '\$${value.toInt()}',
+                    '${AppConstants.currencySymbol}${value.toInt()}',
                     style: AppTheme.captionStyle.copyWith(
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -817,7 +852,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                 final year = yearlyData[group.x.toInt()]['year'];
                 final amount = yearlyData[group.x.toInt()]['amount'];
                 return BarTooltipItem(
-                  '$year\n\$${amount.toStringAsFixed(2)}',
+                  '$year\n${AppConstants.currencySymbol}${amount.toStringAsFixed(2)}',
                   TextStyle(
                     color: Theme.of(context).colorScheme.onInverseSurface,
                     fontWeight: FontWeight.bold,
@@ -850,7 +885,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
                 reservedSize: 40,
                 getTitlesWidget: (value, meta) {
                   return Text(
-                    '\$${value.toInt()}',
+                    '${AppConstants.currencySymbol}${value.toInt()}',
                     style: AppTheme.captionStyle.copyWith(
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -933,7 +968,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
           Row(
             children: [
               Text(
-                '${change >= 0 ? '+' : ''}\$${change.abs().toStringAsFixed(2)}',
+                '${change >= 0 ? '+' : ''}${AppConstants.currencySymbol}${change.abs().toStringAsFixed(2)}',
                 style: AppTheme.titleStyle.copyWith(
                   color: change >= 0 ? AppTheme.lightError : AppTheme.success,
                 ),
@@ -968,7 +1003,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> with TickerProviderSt
           ),
           const SizedBox(height: 12),
           Text(
-            '\$${averageMonthlySpending.toStringAsFixed(2)}',
+            '${AppConstants.currencySymbol}${averageMonthlySpending.toStringAsFixed(2)}',
             style: AppTheme.titleStyle.copyWith(
               color: Theme.of(context).colorScheme.primary,
             ),
